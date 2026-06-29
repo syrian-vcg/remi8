@@ -164,13 +164,13 @@ public class ScriptGraphActivity extends Activity
         // Float 5
         ScriptNode f5a = addNodeToGraph(
                 ScriptGraphEngine.NODE_FLOAT_VALUE, "Float", "Value", 60, 220);
-        f5a.getOutputs().get(0).value = 5f;
+        f5a.outputs.get(0).value = 5f;
         syncFloatDisplay(f5a, 5f);
 
         // Float 3
         ScriptNode f3 = addNodeToGraph(
                 ScriptGraphEngine.NODE_FLOAT_VALUE, "Float", "Value", 60, 310);
-        f3.getOutputs().get(0).value = 3f;
+        f3.outputs.get(0).value = 3f;
         syncFloatDisplay(f3, 3f);
 
         // Subtract
@@ -194,12 +194,12 @@ public class ScriptGraphActivity extends Activity
 
         ScriptNode f5b = addNodeToGraph(
                 ScriptGraphEngine.NODE_FLOAT_VALUE, "Float", "Value", 60, 460);
-        f5b.getOutputs().get(0).value = 5f;
+        f5b.outputs.get(0).value = 5f;
         syncFloatDisplay(f5b, 5f);
 
         ScriptNode f1 = addNodeToGraph(
                 ScriptGraphEngine.NODE_FLOAT_VALUE, "Float", "Value", 450, 510);
-        f1.getOutputs().get(0).value = 1f;
+        f1.outputs.get(0).value = 1f;
         syncFloatDisplay(f1, 1f);
 
         ScriptNode min = addNodeToGraph(
