@@ -554,4 +554,8 @@ public class ScriptGraphView extends View {
 
     public List<ScriptNode> getNodes() { return nodes; }
     public List<Connection> getConnections() { return connections; }
+
+    public float getPanX() { return panX; }
+    public float getPanY() { return panY; }
+    public float getScaleF() { return scale; }
 }
