@@ -162,7 +162,21 @@ public class SceneManager {
         return new ArrayList<>();
     }
 
+    /**
+     * إعادة تحميل المشهد الحالي من جديد
+     */
+    public void reloadCurrentScene() {
+        if (activeScene != null) {
+            String name = activeScene.getName();
+            if (loadedScenes.containsKey(name)) {
+                setActiveScene(loadedScenes.get(name));
+            }
+        }
+    }
+
     public Scene getActiveScene() { return activeScene; }
+    /** اسم بديل لـ getActiveScene للتوافق مع واجهة remiscript */
+    public Scene getCurrentScene() { return activeScene; }
     public Map<String, Scene> getLoadedScenes() { return loadedScenes; }
     public String getProjectPath() { return projectPath; }
     public String getProjectName() { return projectName; }
