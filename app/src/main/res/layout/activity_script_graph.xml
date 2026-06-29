@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- تخطيط شاشة Script Graph المرئي - REMI8 -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#1A1D23">
+
+    <!-- ══ شريط الأدوات العلوي ══════════════════════════════════════════ -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:background="#12151A"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="6dp"
+        android:paddingEnd="6dp"
+        android:elevation="4dp">
+
+        <!-- شعار + عنوان -->
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="⬡  Script Graph"
+            android:textColor="#61AFEF"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:paddingStart="8dp"/>
+
+        <!-- زر المثال -->
+        <Button
+            android:id="@+id/btn_example"
+            android:layout_width="wrap_content"
+            android:layout_height="38dp"
+            android:text="📋"
+            android:textSize="16sp"
+            android:backgroundTint="#252830"
+            android:layout_marginEnd="4dp"/>
+
+        <!-- زر إضافة عقدة -->
+        <Button
+            android:id="@+id/btn_add_node"
+            android:layout_width="wrap_content"
+            android:layout_height="38dp"
+            android:text="＋"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:backgroundTint="#2D4A6A"
+            android:layout_marginEnd="4dp"/>
+
+        <!-- زر توسيط -->
+        <Button
+            android:id="@+id/btn_center"
+            android:layout_width="wrap_content"
+            android:layout_height="38dp"
+            android:text="⊹"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:backgroundTint="#252830"
+            android:layout_marginEnd="4dp"/>
+
+        <!-- زر تشغيل -->
+        <Button
+            android:id="@+id/btn_run"
+            android:layout_width="wrap_content"
+            android:layout_height="38dp"
+            android:text="▶ RUN"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp"
+            android:backgroundTint="#1A7A55"
+            android:layout_marginEnd="4dp"/>
+
+        <!-- زر تصدير -->
+        <Button
+            android:id="@+id/btn_export"
+            android:layout_width="wrap_content"
+            android:layout_height="38dp"
+            android:text="📤"
+            android:textSize="16sp"
+            android:backgroundTint="#4A2A6A"
+            android:layout_marginEnd="4dp"/>
+
+        <!-- زر مسح -->
+        <Button
+            android:id="@+id/btn_clear"
+            android:layout_width="wrap_content"
+            android:layout_height="38dp"
+            android:text="🗑"
+            android:textSize="16sp"
+            android:backgroundTint="#6B3A2A"/>
+
+    </LinearLayout>
+
+    <!-- ══ شريط الحالة ══════════════════════════════════════════════════ -->
+    <TextView
+        android:id="@+id/tv_status"
+        android:layout_width="match_parent"
+        android:layout_height="22dp"
+        android:background="#0D1014"
+        android:text="⟶ REMI8 Script Graph - اسحب لتحريك العقد | Pinch للتكبير | اسحب Pin للربط"
+        android:textColor="#4B5263"
+        android:textSize="11sp"
+        android:paddingStart="10dp"
+        android:gravity="center_vertical"
+        android:singleLine="true"
+        android:ellipsize="end"/>
+
+    <!-- ══ المنطقة الرئيسية (Graph + Palette) ═══════════════════════════ -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <!-- Canvas رسم الـ Graph -->
+        <com.remi8.scriptgraph.ScriptGraphView
+            android:id="@+id/graph_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+        <!-- لوحة الـ Palette (تظهر/تختفي) -->
+        <ScrollView
+            android:id="@+id/palette_scroll"
+            android:layout_width="220dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="start"
+            android:background="#E0141720"
+            android:scrollbars="none"
+            android:elevation="8dp"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:id="@+id/palette_panel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingTop="8dp"
+                android:paddingBottom="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="  📦 إضافة عقدة"
+                    android:textColor="#61AFEF"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:paddingBottom="6dp"
+                    android:paddingTop="4dp"
+                    android:background="#1B4F8A"/>
+
+            </LinearLayout>
+        </ScrollView>
+
+        <!-- بطاقة التلميح (تظهر في البداية) -->
+        <LinearLayout
+            android:id="@+id/hint_card"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|bottom"
+            android:layout_margin="16dp"
+            android:background="#CC23272E"
+            android:orientation="vertical"
+            android:padding="10dp"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="💡 تلميح"
+                android:textColor="#E5C07B"
+                android:textSize="12sp"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="• اضغط ＋ لإضافة عقدة\n• اسحب Pin الإخراج للربط\n• اضغط مزدوجاً لتعديل Float\n• ▶ RUN لتنفيذ الـ Graph"
+                android:textColor="#5C6370"
+                android:textSize="11sp"
+                android:lineSpacingExtra="2dp"/>
+        </LinearLayout>
+
+    </FrameLayout>
+
+    <!-- ══ وحدة الإخراج / Console ═══════════════════════════════════════ -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:orientation="vertical"
+        android:background="#0D1014">
+
+        <!-- رأس Console -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="24dp"
+            android:background="#141720"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="10dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="📟 OUTPUT CONSOLE"
+                android:textColor="#4B5263"
+                android:textSize="11sp"
+                android:letterSpacing="0.1"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C++ JNI Engine"
+                android:textColor="#1A7A55"
+                android:textSize="10sp"
+                android:paddingEnd="10dp"/>
+        </LinearLayout>
+
+        <!-- نص الإخراج -->
+        <ScrollView
+            android:id="@+id/scroll_console"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scrollbars="vertical">
+
+            <TextView
+                android:id="@+id/tv_console"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="#98C379"
+                android:textSize="12sp"
+                android:fontFamily="monospace"
+                android:padding="8dp"
+                android:lineSpacingExtra="2dp"
+                android:text="⟶ REMI8 Script Graph جاهز...\n"/>
+        </ScrollView>
+
+    </LinearLayout>
+
+</LinearLayout>
