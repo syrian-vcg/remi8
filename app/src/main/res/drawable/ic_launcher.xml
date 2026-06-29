@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- أيقونة REMI8 - احمر وأسود وأبيض -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- خلفية حمراء -->
+    <path android:fillColor="#e63946"
+        android:pathData="M0,0 L108,0 L108,108 L0,108 Z"/>
+
+    <!-- شريط أبيض في المنتصف -->
+    <path android:fillColor="#ffffff"
+        android:pathData="M0,30 L108,30 L108,75 L0,75 Z"/>
+
+    <!-- مثلث أسود في الأسفل -->
+    <path android:fillColor="#1a1a1a"
+        android:pathData="M0,90 L108,108 L0,108 Z"/>
+
+    <!-- نص R -->
+    <path android:fillColor="#1a1a1a"
+        android:pathData="M18,38 L18,68 L24,68 L24,56 L30,56 L37,68 L44,68 L36,55 Q42,52 42,46 Q42,38 32,38 Z
+                          M24,44 L31,44 Q36,44 36,47 Q36,50 31,50 L24,50 Z"/>
+
+    <!-- الرقم 8 باللون الأحمر -->
+    <path android:fillColor="#e63946"
+        android:pathData="M78,38 Q68,38 68,48 Q68,54 74,56 Q67,58 67,65 Q67,74 78,74 Q89,74 89,65
+                          Q89,58 82,56 Q88,54 88,48 Q88,38 78,38 Z
+                          M78,44 Q82,44 82,48 Q82,52 78,52 Q74,52 74,48 Q74,44 78,44 Z
+                          M78,58 Q83,58 83,64 Q83,70 78,70 Q73,70 73,64 Q73,58 78,58 Z"/>
+
+</vector>
