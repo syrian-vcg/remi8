@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- تخطيط نافذة تصدير APK - REMI8 -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#1a1a2e">
+
+    <!-- شريط العنوان -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:background="#0f0f23"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="8dp">
+
+        <Button
+            android:id="@+id/btn_back"
+            android:layout_width="40dp"
+            android:layout_height="36dp"
+            android:text="←"
+            android:textColor="#ffffff"
+            android:backgroundTint="#3a3f4b"
+            android:layout_marginEnd="12dp"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="📦 تصدير اللعبة - REMI8"
+            android:textColor="#e63946"
+            android:textSize="16sp"
+            android:textStyle="bold"/>
+    </LinearLayout>
+
+    <!-- المحتوى الرئيسي -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal">
+
+        <!-- ─ إعدادات التصدير ─ -->
+        <ScrollView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <!-- عنوان القسم -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="⚙ إعدادات اللعبة"
+                    android:textColor="#aaaacc"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:paddingBottom="8dp"/>
+
+                <!-- اسم اللعبة -->
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="اسم اللعبة" android:textColor="#aaaacc" android:textSize="13sp"/>
+                <EditText android:id="@+id/game_name_input"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:hint="مثال: مغامرة الفضاء"
+                    android:textColor="#ffffff" android:hintTextColor="#5c6370"
+                    android:background="#2a2a4a" android:padding="10dp"
+                    android:layout_marginBottom="12dp"/>
+
+                <!-- اسم الحزمة -->
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="اسم الحزمة (Package Name)" android:textColor="#aaaacc" android:textSize="13sp"/>
+                <EditText android:id="@+id/package_name_input"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:hint="com.company.gamename"
+                    android:textColor="#ffffff" android:hintTextColor="#5c6370"
+                    android:background="#2a2a4a" android:padding="10dp"
+                    android:inputType="text"
+                    android:layout_marginBottom="12dp"/>
+
+                <!-- الإصدار -->
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:orientation="vertical" android:layout_marginEnd="8dp">
+                        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                            android:text="رقم الإصدار" android:textColor="#aaaacc" android:textSize="13sp"/>
+                        <EditText android:id="@+id/version_name_input"
+                            android:layout_width="match_parent" android:layout_height="wrap_content"
+                            android:text="1.0.0" android:textColor="#ffffff"
+                            android:background="#2a2a4a" android:padding="10dp"/>
+                    </LinearLayout>
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:orientation="vertical">
+                        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                            android:text="كود الإصدار" android:textColor="#aaaacc" android:textSize="13sp"/>
+                        <EditText android:id="@+id/version_code_input"
+                            android:layout_width="match_parent" android:layout_height="wrap_content"
+                            android:text="1" android:textColor="#ffffff"
+                            android:inputType="number"
+                            android:background="#2a2a4a" android:padding="10dp"/>
+                    </LinearLayout>
+                </LinearLayout>
+
+                <View android:layout_width="match_parent" android:layout_height="1dp"
+                    android:background="#2a2a4a" android:layout_marginVertical="12dp"/>
+
+                <!-- الاتجاه والحد الأدنى -->
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="اتجاه الشاشة" android:textColor="#aaaacc" android:textSize="13sp"/>
+                <Spinner android:id="@+id/orientation_spinner"
+                    android:layout_width="match_parent" android:layout_height="48dp"
+                    android:background="#2a2a4a" android:layout_marginBottom="12dp"/>
+
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="الحد الأدنى لأندرويد" android:textColor="#aaaacc" android:textSize="13sp"/>
+                <Spinner android:id="@+id/target_api_spinner"
+                    android:layout_width="match_parent" android:layout_height="48dp"
+                    android:background="#2a2a4a" android:layout_marginBottom="12dp"/>
+
+                <View android:layout_width="match_parent" android:layout_height="1dp"
+                    android:background="#2a2a4a" android:layout_marginBottom="8dp"/>
+
+                <!-- خيارات إضافية -->
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="🔧 خيارات المحرك" android:textColor="#aaaacc" android:textSize="14sp"
+                    android:textStyle="bold" android:paddingBottom="8dp"/>
+
+                <CheckBox android:id="@+id/enable_physics"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="⚡ تفعيل محرك الفيزياء" android:textColor="#ffffff"/>
+                <CheckBox android:id="@+id/enable_audio"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="🎵 تفعيل الصوت" android:textColor="#ffffff"/>
+                <CheckBox android:id="@+id/fullscreen"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="📱 ملء الشاشة" android:textColor="#ffffff"/>
+                <CheckBox android:id="@+id/enable_debug"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="🔍 وضع الديباغ" android:textColor="#ffffff"/>
+
+                <!-- أزرار التصدير -->
+                <Button android:id="@+id/btn_export_apk"
+                    android:layout_width="match_parent" android:layout_height="52dp"
+                    android:text="📦 تصدير APK"
+                    android:textColor="#ffffff" android:textSize="16sp" android:textStyle="bold"
+                    android:backgroundTint="#e63946" android:layout_marginTop="16dp"/>
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:layout_marginTop="8dp">
+                    <Button android:id="@+id/btn_export_project"
+                        android:layout_width="0dp" android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:text="🗜 تصدير المشروع"
+                        android:textColor="#ffffff" android:textSize="13sp"
+                        android:backgroundTint="#3a3f4b" android:layout_marginEnd="4dp"/>
+                    <Button android:id="@+id/btn_share_apk"
+                        android:layout_width="0dp" android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:text="🔗 مشاركة"
+                        android:textColor="#ffffff" android:textSize="13sp"
+                        android:backgroundTint="#2a9d8f"/>
+                </LinearLayout>
+            </LinearLayout>
+        </ScrollView>
+
+        <!-- ─ سجل التصدير ─ -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:background="#16213e">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:text="📋 سجل البناء"
+                android:textColor="#aaaacc"
+                android:textSize="13sp"
+                android:gravity="center_vertical"
+                android:paddingStart="12dp"
+                android:background="#0f0f23"/>
+
+            <ProgressBar
+                android:id="@+id/export_progress"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="6dp"
+                android:progress="0"
+                android:progressTint="#e63946"
+                android:visibility="gone"/>
+
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <TextView
+                    android:id="@+id/export_log"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="#98c379"
+                    android:textSize="13sp"
+                    android:fontFamily="monospace"
+                    android:padding="12dp"
+                    android:text="⟶ جاهز للتصدير...\n\nسيتم إنشاء:\n• حزمة APK للأندرويد\n• ملفات GitHub Actions\n• بيانات المشروع JSON\n"/>
+            </ScrollView>
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>
