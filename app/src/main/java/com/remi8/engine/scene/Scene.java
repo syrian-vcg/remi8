@@ -136,7 +136,8 @@ public class Scene {
      * تحويل بيانات JSON إلى مشهد
      */
     public static Scene fromJson(Map<?, ?> data) {
-        String name = (String) data.getOrDefault("name", "مشهد");
+        Object nameObj = data.get("name");
+        String name = (nameObj instanceof String) ? (String) nameObj : "مشهد";
         Scene scene = new Scene(name);
 
         Object bgColor = data.get("backgroundColor");
@@ -157,7 +158,8 @@ public class Scene {
     }
 
     private static GameObject gameObjectFromJson(Map<?, ?> data) {
-        String name = (String) data.getOrDefault("name", "كائن");
+        Object nameObj = data.get("name");
+        String name = (nameObj instanceof String) ? (String) nameObj : "كائن";
         GameObject obj = new GameObject(name);
         obj.x = toFloat(data.get("x"), 0);
         obj.y = toFloat(data.get("y"), 0);
