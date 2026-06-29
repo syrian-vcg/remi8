@@ -102,6 +102,13 @@ public class AudioManager {
     }
 
     /**
+     * تشغيل موسيقى خلفية (تكرار تلقائي)
+     */
+    public void playMusic(String assetPath) {
+        playMusic(assetPath, true);
+    }
+
+    /**
      * تشغيل موسيقى خلفية
      */
     public void playMusic(String assetPath, boolean loop) {
@@ -165,6 +172,22 @@ public class AudioManager {
         stopMusic();
         soundPool.release();
         Log.i(TAG, "تم تحرير موارد الصوت");
+    }
+
+    /**
+     * إيقاف جميع الأصوات (مؤثرات + موسيقى)
+     */
+    public void stopAll() {
+        soundPool.autoPause();
+        stopMusic();
+    }
+
+    /**
+     * تعيين مستوى صوت الموسيقى والمؤثرات معاً
+     */
+    public void setVolume(float music, float sfx) {
+        setMusicVolume(music);
+        setSfxVolume(sfx);
     }
 
     // إعدادات الصوت
