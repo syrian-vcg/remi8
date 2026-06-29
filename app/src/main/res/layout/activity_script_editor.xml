@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- تخطيط محرر remiscript - REMI8 -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#282c34">
+
+    <!-- ── شريط الأدوات ── -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="#21252b"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp">
+
+        <Button
+            android:id="@+id/btn_back"
+            android:layout_width="40dp"
+            android:layout_height="36dp"
+            android:text="←"
+            android:textColor="#ffffff"
+            android:backgroundTint="#3a3f4b"
+            android:layout_marginEnd="8dp"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="✏ محرر remiscript"
+            android:textColor="#c678dd"
+            android:textSize="15sp"
+            android:textStyle="bold"/>
+
+        <Button
+            android:id="@+id/btn_format"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="⌨"
+            android:textColor="#ffffff"
+            android:backgroundTint="#3a3f4b"
+            android:layout_marginEnd="4dp"/>
+
+        <Button
+            android:id="@+id/btn_save_script"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="💾 حفظ"
+            android:textColor="#ffffff"
+            android:backgroundTint="#2a9d8f"
+            android:layout_marginEnd="4dp"/>
+
+        <Button
+            android:id="@+id/btn_run"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="▶ تشغيل"
+            android:textColor="#ffffff"
+            android:backgroundTint="#e63946"/>
+    </LinearLayout>
+
+    <!-- ── شريط اختصارات الكلمات المحجوزة ── -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:background="#1e2229"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:id="@+id/shortcut_bar"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp"/>
+    </HorizontalScrollView>
+
+    <!-- ── منطقة الكود ── -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="2"
+        android:orientation="horizontal">
+
+        <!-- أرقام الأسطر -->
+        <ScrollView
+            android:layout_width="40dp"
+            android:layout_height="match_parent"
+            android:scrollbars="none"
+            android:background="#1e2229">
+
+            <TextView
+                android:id="@+id/line_numbers"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="#4b5263"
+                android:textSize="14sp"
+                android:fontFamily="monospace"
+                android:paddingTop="12dp"
+                android:paddingEnd="6dp"
+                android:gravity="end"
+                android:lineSpacingExtra="2dp"/>
+        </ScrollView>
+
+        <!-- الفاصل -->
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="#3a3f4b"/>
+
+        <!-- محرر الكود -->
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <EditText
+                android:id="@+id/code_editor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#282c34"
+                android:textColor="#abb2bf"
+                android:textSize="14sp"
+                android:fontFamily="monospace"
+                android:padding="12dp"
+                android:gravity="top|start"
+                android:inputType="textMultiLine|textNoSuggestions"
+                android:imeOptions="flagNoEnterAction"
+                android:lineSpacingExtra="3dp"
+                android:textCursorDrawable="@null"
+                android:hint="// اكتب كود remiscript هنا..."
+                android:textColorHint="#4b5263"/>
+        </ScrollView>
+    </LinearLayout>
+
+    <!-- ── وحدة الإخراج ── -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:background="#1e2229">
+
+        <!-- رأس وحدة الإخراج -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="32dp"
+            android:background="#21252b"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="8dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="📟 وحدة الإخراج"
+                android:textColor="#5c6370"
+                android:textSize="12sp"/>
+
+            <Button
+                android:id="@+id/btn_clear_console"
+                android:layout_width="wrap_content"
+                android:layout_height="26dp"
+                android:text="مسح"
+                android:textColor="#5c6370"
+                android:backgroundTint="#2a2a3a"
+                android:textSize="11sp"
+                android:layout_marginEnd="4dp"/>
+        </LinearLayout>
+
+        <!-- نص الإخراج -->
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/output_console"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="#98c379"
+                android:textSize="13sp"
+                android:fontFamily="monospace"
+                android:padding="8dp"
+                android:text="⟶ جاهز للتنفيذ...\n"/>
+        </ScrollView>
+    </LinearLayout>
+
+</LinearLayout>
