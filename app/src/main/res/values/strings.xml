@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- موارد النصوص - REMI8 Engine -->
+<resources>
+    <string name="app_name">REMI8</string>
+    <string name="engine_name">محرك REMI8</string>
+    <string name="export_game">تصدير اللعبة</string>
+    <string name="script_editor">محرر remiscript</string>
+
+    <!-- المحرر -->
+    <string name="play">▶ تشغيل</string>
+    <string name="pause">⏸ إيقاف مؤقت</string>
+    <string name="stop">⏹ إيقاف</string>
+    <string name="save">💾 حفظ</string>
+    <string name="new_scene">🗋 مشهد جديد</string>
+    <string name="add_object">➕ إضافة كائن</string>
+    <string name="export">📦 تصدير APK</string>
+    <string name="script">✏ سكربت</string>
+    <string name="settings">⚙ إعدادات</string>
+
+    <!-- الكائنات -->
+    <string name="object_name">اسم الكائن</string>
+    <string name="position_x">الموضع X</string>
+    <string name="position_y">الموضع Y</string>
+    <string name="width">العرض</string>
+    <string name="height">الارتفاع</string>
+    <string name="rotation">الدوران</string>
+    <string name="color">اللون</string>
+    <string name="layer">الطبقة</string>
+
+    <!-- التصدير -->
+    <string name="game_name_label">اسم اللعبة</string>
+    <string name="package_name_label">اسم الحزمة</string>
+    <string name="version_name_label">رقم الإصدار</string>
+    <string name="version_code_label">كود الإصدار</string>
+    <string name="export_apk">📦 تصدير APK</string>
+    <string name="export_project">🗜 تصدير المشروع</string>
+    <string name="orientation_label">الاتجاه</string>
+    <string name="min_sdk_label">الحد الأدنى لأندرويد</string>
+
+    <!-- الرسائل -->
+    <string name="engine_started">تم تشغيل محرك REMI8</string>
+    <string name="save_success">تم الحفظ بنجاح ✓</string>
+    <string name="export_success">تم التصدير بنجاح! ✓</string>
+    <string name="error_prefix">خطأ: </string>
+</resources>
