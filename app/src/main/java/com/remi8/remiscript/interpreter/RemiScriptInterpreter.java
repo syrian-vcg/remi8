@@ -9,6 +9,7 @@ import com.remi8.engine.physics.PhysicsBody;
 import com.remi8.remiscript.parser.RemiScriptLexer;
 import com.remi8.remiscript.parser.RemiScriptLexer.Token;
 import com.remi8.remiscript.parser.RemiScriptLexer.TokenType;
+import com.remi8.scriptgraph.ScriptGraphEngine;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,27 +17,21 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * مفسّر لغة remiscript - REMI8
- * لغة برمجة عربية لتطوير الألعاب ثنائية الأبعاد
+ * ─────────────────────────────────────────────────────────────
+ *  RemiScriptInterpreter v2 - REMI8
+ *  مفسّر لغة remiscript المطوّر
  *
- * مثال على remiscript:
- * ────────────────────
- * // تحريك اللاعب
- * دالة تحديث(دت) {
- *     إذا (مدخل.زر("يمين")) {
- *         اللاعب.س += 200 * دت
- *     }
- *     إذا (مدخل.زر("يسار")) {
- *         اللاعب.س -= 200 * دت
- *     }
- *     إذا (مدخل.زر("قفز") و اللاعب.علىالأرض) {
- *         اللاعب.قفز(500)
- *     }
- * }
+ *  جديد في v2:
+ *  • تكامل مع Script Graph (تنفيذ العقد البرمجية)
+ *  • دوال رياضيات Mathf.Abs/Min/Max/Sqrt/Sin/Cos
+ *  • دعم نظام الأحداث (OnUpdate / OnStart / OnCollision)
+ *  • تنفيذ Graph من remiscript مباشرة
+ *  • تحسينات الأداء وإضافة عمليات Bitwise
+ * ─────────────────────────────────────────────────────────────
  */
 public class RemiScriptInterpreter {
 
-    private static final String TAG = "REMI8_Script";
+    private static final String TAG = "REMI8_Script_v2";
 
     private final GameEngine engine;
 
@@ -52,362 +47,354 @@ public class RemiScriptInterpreter {
     // سكربتات الحدث
     private final Map<String, List<String>> eventScripts = new HashMap<>();
 
-    // استثناء الإيقاف والإرجاع
-    private static class BreakException extends RuntimeException {}
+    // ── استثناءات التحكم ──────────────────────────────────────────────────
+    private static class BreakException    extends RuntimeException {}
     private static class ContinueException extends RuntimeException {}
-    private static class ReturnException extends RuntimeException {
+    private static class ReturnException   extends RuntimeException {
         final Object value;
         ReturnException(Object value) { this.value = value; }
     }
+
+    // ─────────────────────────────────────────────────────────────────────
 
     public RemiScriptInterpreter(GameEngine engine) {
         this.engine = engine;
         registerBuiltins();
     }
 
-    /**
-     * تسجيل الدوال المدمجة
-     */
+    // ── تسجيل الدوال المدمجة ───────────────────────────────────────────────
+
     private void registerBuiltins() {
-        // دوال الطباعة
+
+        // ── طباعة ────────────────────────────────────────────────────────
         globalScope.put("طباعة", (BuiltinFunction) args -> {
             StringBuilder sb = new StringBuilder();
-            for (Object arg : args) sb.append(toString(arg)).append(" ");
+            for (Object a : args) sb.append(toStr(a)).append(" ");
             Log.d(TAG, "[remiscript] " + sb.toString().trim());
             return null;
         });
-
         globalScope.put("print", globalScope.get("طباعة"));
 
-        // الرياضيات
+        // ── رياضيات (Mathf) ───────────────────────────────────────────────
         globalScope.put("رياضيات", createMathObject());
-        globalScope.put("math", globalScope.get("رياضيات"));
+        globalScope.put("Mathf",   globalScope.get("رياضيات"));
+        globalScope.put("math",    globalScope.get("رياضيات"));
 
-        // مدير المدخلات
+        // ── مدخلات ────────────────────────────────────────────────────────
         globalScope.put("مدخل", createInputObject());
         globalScope.put("input", globalScope.get("مدخل"));
 
-        // مدير الصوت
+        // ── صوت ───────────────────────────────────────────────────────────
         globalScope.put("صوت", createAudioObject());
         globalScope.put("audio", globalScope.get("صوت"));
 
-        // مدير المشاهد
+        // ── مشهد ──────────────────────────────────────────────────────────
         globalScope.put("مشهد", createSceneObject());
         globalScope.put("scene", globalScope.get("مشهد"));
 
-        // دوال الوقت
+        // ── وقت ───────────────────────────────────────────────────────────
         globalScope.put("وقت", createTimeObject());
+        globalScope.put("Time", globalScope.get("وقت"));
 
-        // دوال عشوائية
+        // ── عشوائي ────────────────────────────────────────────────────────
         globalScope.put("عشوائي", (BuiltinFunction) args -> {
             if (args.size() >= 2) {
-                float min = toFloat(args.get(0));
-                float max = toFloat(args.get(1));
-                return min + (float) (Math.random() * (max - min));
+                float mn = toFloat(args.get(0)), mx = toFloat(args.get(1));
+                return mn + (float)(Math.random() * (mx - mn));
             }
             return (float) Math.random();
         });
         globalScope.put("random", globalScope.get("عشوائي"));
+
+        // ── Graph (Script Graph تشغيل من remiscript) ──────────────────────
+        globalScope.put("Graph", createGraphObject());
+
+        // ── نظام الأحداث ──────────────────────────────────────────────────
+        globalScope.put("حدث", createEventObject());
     }
 
-    /**
-     * كائن الرياضيات المدمج
-     */
+    // ── كائن الرياضيات ────────────────────────────────────────────────────
+
     private Map<String, Object> createMathObject() {
-        Map<String, Object> math = new HashMap<>();
-        math.put("pi", (float) Math.PI);
-        math.put("ط", (float) Math.PI);
-        math.put("جذر", (BuiltinFunction) args -> (float) Math.sqrt(toFloat(args.get(0))));
-        math.put("مطلق", (BuiltinFunction) args -> Math.abs(toFloat(args.get(0))));
-        math.put("أقصى", (BuiltinFunction) args -> Math.max(toFloat(args.get(0)), toFloat(args.get(1))));
-        math.put("أدنى", (BuiltinFunction) args -> Math.min(toFloat(args.get(0)), toFloat(args.get(1))));
-        math.put("تقريب", (BuiltinFunction) args -> (float) Math.round(toFloat(args.get(0))));
-        math.put("جيب", (BuiltinFunction) args -> (float) Math.sin(Math.toRadians(toFloat(args.get(0)))));
-        math.put("جيب_تمام", (BuiltinFunction) args -> (float) Math.cos(Math.toRadians(toFloat(args.get(0)))));
-        math.put("قوة", (BuiltinFunction) args -> (float) Math.pow(toFloat(args.get(0)), toFloat(args.get(1))));
-        math.put("sqrt", math.get("جذر"));
-        math.put("abs", math.get("مطلق"));
-        math.put("max", math.get("أقصى"));
-        math.put("min", math.get("أدنى"));
-        math.put("round", math.get("تقريب"));
-        math.put("sin", math.get("جيب"));
-        math.put("cos", math.get("جيب_تمام"));
-        math.put("pow", math.get("قوة"));
-        return math;
+        Map<String, Object> m = new HashMap<>();
+        m.put("PI", (float) Math.PI);
+        m.put("ط",  (float) Math.PI);
+        m.put("E",  (float) Math.E);
+
+        m.put("مطلق",    (BuiltinFunction) a -> Math.abs(toFloat(a.get(0))));
+        m.put("Abs",     m.get("مطلق"));
+        m.put("abs",     m.get("مطلق"));
+
+        m.put("جذر",     (BuiltinFunction) a -> (float) Math.sqrt(toFloat(a.get(0))));
+        m.put("Sqrt",    m.get("جذر"));
+        m.put("sqrt",    m.get("جذر"));
+
+        m.put("أقصى",    (BuiltinFunction) a -> Math.max(toFloat(a.get(0)), toFloat(a.get(1))));
+        m.put("Max",     m.get("أقصى"));
+        m.put("max",     m.get("أقصى"));
+
+        m.put("أدنى",    (BuiltinFunction) a -> Math.min(toFloat(a.get(0)), toFloat(a.get(1))));
+        m.put("Min",     m.get("أدنى"));
+        m.put("min",     m.get("أدنى"));
+
+        m.put("تقريب",   (BuiltinFunction) a -> (float) Math.round(toFloat(a.get(0))));
+        m.put("Round",   m.get("تقريب"));
+
+        m.put("أرضية",   (BuiltinFunction) a -> (float) Math.floor(toFloat(a.get(0))));
+        m.put("Floor",   m.get("أرضية"));
+
+        m.put("سقف",     (BuiltinFunction) a -> (float) Math.ceil(toFloat(a.get(0))));
+        m.put("Ceil",    m.get("سقف"));
+
+        m.put("جيب",     (BuiltinFunction) a -> (float) Math.sin(Math.toRadians(toFloat(a.get(0)))));
+        m.put("Sin",     m.get("جيب"));
+
+        m.put("جيب_تمام",(BuiltinFunction) a -> (float) Math.cos(Math.toRadians(toFloat(a.get(0)))));
+        m.put("Cos",     m.get("جيب_تمام"));
+
+        m.put("ظل",      (BuiltinFunction) a -> (float) Math.tan(Math.toRadians(toFloat(a.get(0)))));
+        m.put("Tan",     m.get("ظل"));
+
+        m.put("قوة",     (BuiltinFunction) a -> (float) Math.pow(toFloat(a.get(0)), toFloat(a.get(1))));
+        m.put("Pow",     m.get("قوة"));
+
+        m.put("لوغاريتم",(BuiltinFunction) a -> (float) Math.log(toFloat(a.get(0))));
+        m.put("Log",     m.get("لوغاريتم"));
+
+        m.put("تثبيت",   (BuiltinFunction) a -> {
+            float v = toFloat(a.get(0)), mn = toFloat(a.get(1)), mx = toFloat(a.get(2));
+            return Math.max(mn, Math.min(mx, v));
+        });
+        m.put("Clamp",   m.get("تثبيت"));
+
+        m.put("تمدد",    (BuiltinFunction) a -> {
+            float v = toFloat(a.get(0)), mn = toFloat(a.get(1)), mx = toFloat(a.get(2));
+            return mn + (mx - mn) * v;
+        });
+        m.put("Lerp",    m.get("تمدد"));
+
+        m.put("إشارة",   (BuiltinFunction) a -> (float) Math.signum(toFloat(a.get(0))));
+        m.put("Sign",    m.get("إشارة"));
+
+        return m;
     }
 
-    /**
-     * كائن المدخلات المدمج
-     */
+    // ── كائن المدخلات ─────────────────────────────────────────────────────
+
     private Map<String, Object> createInputObject() {
-        Map<String, Object> input = new HashMap<>();
-        input.put("زر", (BuiltinFunction) args -> {
-            if (args.isEmpty()) return false;
-            return engine.getInputManager().isButtonPressed(toString(args.get(0)));
+        Map<String, Object> inp = new HashMap<>();
+
+        inp.put("زر", (BuiltinFunction) a -> {
+            if (a.isEmpty()) return false;
+            return engine.getInputManager().isButtonPressed(toStr(a.get(0)));
         });
-        input.put("لمس", (BuiltinFunction) args -> {
-            return !engine.getInputManager().getTouchPoints().isEmpty();
+        inp.put("Button", inp.get("زر"));
+
+        inp.put("زر_ضغط", (BuiltinFunction) a -> {
+            if (a.isEmpty()) return false;
+            return engine.getInputManager().isButtonJustPressed(toStr(a.get(0)));
         });
-        input.put("إيماءة", (BuiltinFunction) args -> {
-            return engine.getInputManager().getLastSwipeDirection();
-        });
-        input.put("جويستيك_س", (BuiltinFunction) args -> engine.getInputManager().getJoystickX());
-        input.put("جويستيك_ص", (BuiltinFunction) args -> engine.getInputManager().getJoystickY());
-        input.put("button", input.get("زر"));
-        input.put("touch", input.get("لمس"));
-        return input;
+        inp.put("ButtonDown", inp.get("زر_ضغط"));
+
+        inp.put("لمس", (BuiltinFunction) a ->
+            !engine.getInputManager().getTouchPoints().isEmpty());
+        inp.put("Touch", inp.get("لمس"));
+
+        inp.put("محور_س", (BuiltinFunction) a ->
+            engine.getInputManager().getAxis("x"));
+        inp.put("محور_ص", (BuiltinFunction) a ->
+            engine.getInputManager().getAxis("y"));
+
+        return inp;
     }
 
-    /**
-     * كائن الصوت المدمج
-     */
+    // ── كائن الصوت ────────────────────────────────────────────────────────
+
     private Map<String, Object> createAudioObject() {
-        Map<String, Object> audio = new HashMap<>();
-        audio.put("شغّل", (BuiltinFunction) args -> {
-            if (!args.isEmpty()) engine.getAudioManager().playSound(toString(args.get(0)));
+        Map<String, Object> aud = new HashMap<>();
+
+        aud.put("شغّل", (BuiltinFunction) a -> {
+            if (!a.isEmpty()) engine.getAudioManager().playSound(toStr(a.get(0)));
             return null;
         });
-        audio.put("موسيقى", (BuiltinFunction) args -> {
-            if (!args.isEmpty()) engine.getAudioManager().playMusic(toString(args.get(0)), true);
+        aud.put("play",   aud.get("شغّل"));
+
+        aud.put("أوقف", (BuiltinFunction) a -> {
+            engine.getAudioManager().stopAll();
             return null;
         });
-        audio.put("إيقاف", (BuiltinFunction) args -> {
-            engine.getAudioManager().stopMusic();
+        aud.put("stop",   aud.get("أوقف"));
+
+        aud.put("موسيقى", (BuiltinFunction) a -> {
+            if (!a.isEmpty()) engine.getAudioManager().playMusic(toStr(a.get(0)));
             return null;
         });
-        audio.put("صوت_رئيسي", (BuiltinFunction) args -> {
-            if (!args.isEmpty()) engine.getAudioManager().setMasterVolume(toFloat(args.get(0)));
+        aud.put("music",  aud.get("موسيقى"));
+
+        aud.put("صوت_الخلفية", (BuiltinFunction) a -> {
+            if (a.size() >= 2) {
+                engine.getAudioManager().setVolume(toFloat(a.get(0)), toFloat(a.get(1)));
+            }
             return null;
         });
-        audio.put("play", audio.get("شغّل"));
-        audio.put("music", audio.get("موسيقى"));
-        audio.put("stop", audio.get("إيقاف"));
-        return audio;
+
+        return aud;
     }
 
-    /**
-     * كائن المشهد المدمج
-     */
+    // ── كائن المشهد ───────────────────────────────────────────────────────
+
     private Map<String, Object> createSceneObject() {
-        Map<String, Object> scene = new HashMap<>();
-        scene.put("ابحث", (BuiltinFunction) args -> {
-            if (args.isEmpty()) return null;
-            return engine.getSceneManager().findObject(toString(args.get(0)));
-        });
-        scene.put("تبديل", (BuiltinFunction) args -> {
-            if (!args.isEmpty()) engine.getSceneManager().switchScene(toString(args.get(0)));
+        Map<String, Object> sc = new HashMap<>();
+
+        sc.put("تحميل", (BuiltinFunction) a -> {
+            if (!a.isEmpty()) engine.getSceneManager().loadScene(toStr(a.get(0)));
             return null;
         });
-        scene.put("إضافة", (BuiltinFunction) args -> {
-            if (!args.isEmpty() && args.get(0) instanceof GameObject) {
-                engine.getSceneManager().addObject((GameObject) args.get(0));
-            }
+        sc.put("load",    sc.get("تحميل"));
+
+        sc.put("إعادة", (BuiltinFunction) a -> {
+            engine.getSceneManager().reloadCurrentScene();
             return null;
         });
-        scene.put("find", scene.get("ابحث"));
-        scene.put("switch", scene.get("تبديل"));
-        return scene;
+        sc.put("reload",  sc.get("إعادة"));
+
+        sc.put("كائن", (BuiltinFunction) a -> {
+            if (a.isEmpty()) return null;
+            return engine.getSceneManager()
+                         .getCurrentScene()
+                         .findObject(toStr(a.get(0)));
+        });
+        sc.put("getObject", sc.get("كائن"));
+
+        return sc;
     }
 
-    /**
-     * كائن الوقت المدمج
-     */
+    // ── كائن الوقت ────────────────────────────────────────────────────────
+
     private Map<String, Object> createTimeObject() {
-        Map<String, Object> time = new HashMap<>();
-        time.put("الآن", (BuiltinFunction) args -> (float) (System.currentTimeMillis() / 1000.0));
-        time.put("إطارات", (BuiltinFunction) args -> engine.getCurrentFPS());
-        time.put("now", time.get("الآن"));
-        time.put("fps", time.get("إطارات"));
-        return time;
+        Map<String, Object> t = new HashMap<>();
+        t.put("الآن",      (BuiltinFunction) a -> (float)(System.currentTimeMillis() / 1000.0));
+        t.put("now",       t.get("الآن"));
+        t.put("ثوانٍ",     (BuiltinFunction) a -> (float)(System.nanoTime() / 1e9));
+        t.put("seconds",   t.get("ثوانٍ"));
+        return t;
     }
 
-    /**
-     * تنفيذ كود remiscript
-     */
-    public Object execute(String code, Map<String, Object> localScope) {
-        try {
-            RemiScriptLexer lexer = new RemiScriptLexer(code);
-            List<Token> tokens = lexer.tokenize();
-            RemiScriptParser parser = new RemiScriptParser(tokens);
-            List<ASTNode> statements = parser.parseProgram();
-            return executeBlock(statements, localScope != null ? localScope : new HashMap<>());
-        } catch (ReturnException r) {
-            return r.value;
-        } catch (Exception e) {
-            Log.e(TAG, "خطأ في تنفيذ remiscript: " + e.getMessage());
-            return null;
-        }
+    // ── كائن Graph (تكامل Script Graph) ──────────────────────────────────
+
+    private Map<String, Object> createGraphObject() {
+        Map<String, Object> g = new HashMap<>();
+
+        // تشغيل حدث في الـ Graph
+        g.put("تشغيل", (BuiltinFunction) a -> {
+            String event = a.isEmpty() ? "OnUpdate" : toStr(a.get(0));
+            return ScriptGraphEngine.nativeExecuteEvent(event);
+        });
+        g.put("run", g.get("تشغيل"));
+
+        // تقييم عقدة بـ ID
+        g.put("قيمة", (BuiltinFunction) a -> {
+            if (a.size() < 2) return 0f;
+            int id = (int) toFloat(a.get(0));
+            String pin = toStr(a.get(1));
+            return ScriptGraphEngine.nativeEvaluate(id, pin);
+        });
+        g.put("eval", g.get("قيمة"));
+
+        // تصدير Graph كـ remiscript
+        g.put("تصدير", (BuiltinFunction) a ->
+            ScriptGraphEngine.nativeExportRemiScript());
+        g.put("export", g.get("تصدير"));
+
+        return g;
     }
 
-    /**
-     * تنفيذ ملف سكربت محمّل
-     */
-    public void executeScript(String name, String code) {
-        try {
-            RemiScriptLexer lexer = new RemiScriptLexer(code);
-            List<Token> tokens = lexer.tokenize();
-            RemiScriptParser parser = new RemiScriptParser(tokens);
-            List<ASTNode> statements = parser.parseProgram();
-            executeBlock(statements, globalScope);
-            Log.d(TAG, "تم تنفيذ السكربت: " + name);
-        } catch (Exception e) {
-            Log.e(TAG, "خطأ في السكربت '" + name + "': " + e.getMessage());
-        }
-    }
+    // ── كائن الأحداث ─────────────────────────────────────────────────────
 
-    /**
-     * تحديث كل إطار - تشغيل دالة تحديث() في السكربتات
-     */
-    public void update(float deltaTime) {
-        // تشغيل دالة تحديث في السكربتات المرتبطة بكائنات اللعبة
-        if (engine.getSceneManager().getActiveScene() != null) {
-            for (GameObject obj : engine.getSceneManager().getActiveScene().getObjects()) {
-                for (String scriptName : obj.getAttachedScripts()) {
-                    callObjectUpdate(obj, scriptName, deltaTime);
-                }
+    private Map<String, Object> createEventObject() {
+        Map<String, Object> ev = new HashMap<>();
+
+        ev.put("تسجيل", (BuiltinFunction) a -> {
+            if (a.size() >= 2) {
+                String name = toStr(a.get(0));
+                String script = toStr(a.get(1));
+                eventScripts.computeIfAbsent(name, k -> new ArrayList<>()).add(script);
             }
+            return null;
+        });
+        ev.put("on", ev.get("تسجيل"));
+
+        ev.put("إطلاق", (BuiltinFunction) a -> {
+            if (a.isEmpty()) return null;
+            String name = toStr(a.get(0));
+            List<String> scripts = eventScripts.get(name);
+            if (scripts != null) {
+                for (String s : scripts) runScript(s, "event_" + name);
+            }
+            return null;
+        });
+        ev.put("emit", ev.get("إطلاق"));
+
+        return ev;
+    }
+
+    // ── تشغيل Script ──────────────────────────────────────────────────────
+
+    public void runScript(String code, String name) {
+        try {
+            RemiScriptLexer lexer = new RemiScriptLexer(code);
+            List<Token> tokens = lexer.tokenize();
+            RemiScriptParser parser = new RemiScriptParser(tokens);
+            ParsedScript parsed = parser.parse();
+            loadedScripts.put(name, parsed);
+            executeBlock(parsed.statements, new HashMap<>(globalScope));
+        } catch (Exception e) {
+            Log.e(TAG, "خطأ في تنفيذ " + name + ": " + e.getMessage(), e);
         }
     }
 
-    private void callObjectUpdate(GameObject obj, String scriptName, float deltaTime) {
-        ScriptFunction updateFunc = functions.get(scriptName + ".تحديث");
-        if (updateFunc == null) updateFunc = functions.get(scriptName + ".update");
-        if (updateFunc != null) {
+    public void callEvent(String eventName, Map<String, Object> args) {
+        if (functions.containsKey(eventName)) {
+            List<Object> argList = new ArrayList<>(args.values());
+            ScriptFunction fn = functions.get(eventName);
             Map<String, Object> scope = new HashMap<>(globalScope);
-            scope.put("هذا", createGameObjectProxy(obj));
-            scope.put("this", scope.get("هذا"));
-            scope.put("دت", deltaTime);
-            scope.put("dt", deltaTime);
+            scope.putAll(args);
             try {
-                callFunction(updateFunc, List.of((Object) deltaTime), scope);
-            } catch (Exception e) {
-                Log.e(TAG, "خطأ في دالة التحديث: " + e.getMessage());
-            }
+                executeBlock(fn.body, scope);
+            } catch (ReturnException ignored) {}
         }
+        // تشغيل حدث Graph أيضاً
+        ScriptGraphEngine.nativeExecuteEvent(eventName);
     }
 
-    /**
-     * إنشاء وكيل (proxy) لكائن اللعبة في remiscript
-     */
-    @SuppressWarnings("unchecked")
-    public Map<String, Object> createGameObjectProxy(GameObject obj) {
-        Map<String, Object> proxy = new HashMap<>();
+    // ── تنفيذ Block ───────────────────────────────────────────────────────
 
-        // الخصائص الأساسية
-        proxy.put("س", obj.x);
-        proxy.put("ص", obj.y);
-        proxy.put("عرض", obj.width);
-        proxy.put("ارتفاع", obj.height);
-        proxy.put("دوران", obj.rotation);
-        proxy.put("نشط", obj.isActive());
-        proxy.put("مرئي", obj.isVisible());
-        proxy.put("اسم", obj.getName());
-        proxy.put("x", obj.x);
-        proxy.put("y", obj.y);
-
-        // الجسم الفيزيائي
-        PhysicsBody body = (PhysicsBody) obj.getComponent("physics");
-        if (body != null) {
-            proxy.put("سرعة_س", body.velocityX);
-            proxy.put("سرعة_ص", body.velocityY);
-            proxy.put("علىالأرض", body.isGrounded);
-            proxy.put("velX", body.velocityX);
-            proxy.put("velY", body.velocityY);
-            proxy.put("grounded", body.isGrounded);
-
-            proxy.put("قفز", (BuiltinFunction) args -> {
-                float force = args.isEmpty() ? 500f : toFloat(args.get(0));
-                body.jump(force);
-                return null;
-            });
-            proxy.put("دفع", (BuiltinFunction) args -> {
-                float fx = args.size() > 0 ? toFloat(args.get(0)) : 0;
-                float fy = args.size() > 1 ? toFloat(args.get(1)) : 0;
-                body.applyImpulse(fx, fy);
-                return null;
-            });
-            proxy.put("jump", proxy.get("قفز"));
-            proxy.put("push", proxy.get("دفع"));
-        }
-
-        // دوال التحكم
-        proxy.put("تحديث_س", (BuiltinFunction) args -> {
-            if (!args.isEmpty()) obj.x = toFloat(args.get(0));
-            return obj.x;
-        });
-        proxy.put("تحديث_ص", (BuiltinFunction) args -> {
-            if (!args.isEmpty()) obj.y = toFloat(args.get(0));
-            return obj.y;
-        });
-        proxy.put("تعيين_لون", (BuiltinFunction) args -> {
-            if (!args.isEmpty()) obj.setProperty("color", toString(args.get(0)));
-            return null;
-        });
-        proxy.put("تعيين_نص", (BuiltinFunction) args -> {
-            if (!args.isEmpty()) obj.setProperty("text", toString(args.get(0)));
-            return null;
-        });
-        proxy.put("إخفاء", (BuiltinFunction) args -> { obj.setVisible(false); return null; });
-        proxy.put("إظهار", (BuiltinFunction) args -> { obj.setVisible(true); return null; });
-        proxy.put("تفعيل", (BuiltinFunction) args -> { obj.setActive(true); return null; });
-        proxy.put("تعطيل", (BuiltinFunction) args -> { obj.setActive(false); return null; });
-        proxy.put("خاصية", (BuiltinFunction) args -> {
-            if (args.size() >= 2) obj.setProperty(toString(args.get(0)), args.get(1));
-            else if (args.size() == 1) return obj.getProperty(toString(args.get(0)));
-            return null;
-        });
-        proxy.put("تصادم", (BuiltinFunction) args -> {
-            if (!args.isEmpty() && args.get(0) instanceof Map) {
-                return false; // سيتم تطويره
-            }
-            return false;
-        });
-        proxy.put("hide", proxy.get("إخفاء"));
-        proxy.put("show", proxy.get("إظهار"));
-
-        return proxy;
+    private Object executeBlock(List<ASTNode> stmts, Map<String, Object> scope) {
+        for (ASTNode s : stmts) execute(s, scope);
+        return null;
     }
 
-    // ─── تنفيذ الكتل والعبارات ───
-
-    private Object executeBlock(List<ASTNode> statements, Map<String, Object> scope) {
-        Object result = null;
-        for (ASTNode stmt : statements) {
-            result = executeStatement(stmt, scope);
-        }
-        return result;
-    }
-
-    @SuppressWarnings("unchecked")
-    private Object executeStatement(ASTNode node, Map<String, Object> scope) {
-        if (node == null) return null;
-
+    private Object execute(ASTNode node, Map<String, Object> scope) {
         switch (node.type) {
-            case "متغير":
-            case "ثابت": {
-                Object value = node.children.size() > 0 ? evaluate(node.children.get(0), scope) : null;
-                scope.put(node.value, value);
-                return null;
-            }
 
-            case "تعيين": {
-                Object value = evaluate(node.children.get(1), scope);
-                String varName = node.children.get(0).value;
-                if (varName.contains(".")) {
-                    setNestedProperty(varName, value, scope);
-                } else {
-                    if (scope.containsKey(varName)) scope.put(varName, value);
-                    else globalScope.put(varName, value);
-                }
-                return value;
+            case "برنامج":
+                return executeBlock(node.children, scope);
+
+            case "تعريف_دالة": {
+                ScriptFunction fn = new ScriptFunction(
+                    node.value, node.params, node.children, new HashMap<>(scope));
+                functions.put(node.value, fn);
+                globalScope.put(node.value, fn);
+                return null;
             }
 
             case "إذا": {
-                Object condition = evaluate(node.children.get(0), scope);
-                if (isTruthy(condition)) {
-                    return executeBlock(node.block, new HashMap<>(scope));
-                } else if (node.elseBlock != null) {
-                    return executeBlock(node.elseBlock, new HashMap<>(scope));
+                boolean cond = isTruthy(evaluate(node.children.get(0), scope));
+                if (cond) {
+                    executeBlock(node.children.subList(1,
+                        node.elseIndex > 0 ? node.elseIndex : node.children.size()), scope);
+                } else if (node.elseIndex > 0) {
+                    executeBlock(node.children.subList(node.elseIndex, node.children.size()), scope);
                 }
                 return null;
             }
@@ -415,117 +402,131 @@ public class RemiScriptInterpreter {
             case "طالما": {
                 while (isTruthy(evaluate(node.children.get(0), scope))) {
                     try {
-                        executeBlock(node.block, new HashMap<>(scope));
-                    } catch (BreakException e) {
-                        break;
-                    } catch (ContinueException e) {
-                        // استمر
-                    }
+                        executeBlock(node.children.subList(1, node.children.size()), scope);
+                    } catch (BreakException e)    { break; }
+                      catch (ContinueException e) { }
                 }
                 return null;
             }
 
             case "لكل": {
-                String varName = node.value;
-                Object iterable = evaluate(node.children.get(0), scope);
-                if (iterable instanceof List) {
-                    for (Object item : (List<?>) iterable) {
-                        Map<String, Object> loopScope = new HashMap<>(scope);
-                        loopScope.put(varName, item);
-                        try {
-                            executeBlock(node.block, loopScope);
-                        } catch (BreakException e) {
-                            break;
-                        } catch (ContinueException e) {
-                            // استمر
-                        }
-                    }
+                String var = node.value;
+                Object iter = evaluate(node.children.get(0), scope);
+                List<?> list = iter instanceof List ? (List<?>) iter : new ArrayList<>();
+                for (Object item : list) {
+                    scope.put(var, item);
+                    try {
+                        executeBlock(node.children.subList(1, node.children.size()), scope);
+                    } catch (BreakException e)    { break; }
+                      catch (ContinueException e) { }
                 }
                 return null;
             }
 
-            case "دالة": {
-                ScriptFunction func = new ScriptFunction(node.value, node.params, node.block, new HashMap<>(scope));
-                functions.put(node.value, func);
-                scope.put(node.value, func);
+            case "كرر": {
+                int count = (int) toFloat(evaluate(node.children.get(0), scope));
+                for (int i = 0; i < count; i++) {
+                    scope.put("i", (float) i);
+                    try {
+                        executeBlock(node.children.subList(1, node.children.size()), scope);
+                    } catch (BreakException e)    { break; }
+                      catch (ContinueException e) { }
+                }
                 return null;
             }
 
-            case "إرجاع": {
-                Object value = node.children.isEmpty() ? null : evaluate(node.children.get(0), scope);
-                throw new ReturnException(value);
+            case "إيقاف":    throw new BreakException();
+            case "استمر":    throw new ContinueException();
+            case "إرجاع":
+                throw new ReturnException(
+                    node.children.isEmpty() ? null : evaluate(node.children.get(0), scope));
+
+            case "تعيين": {
+                String name = node.value;
+                Object val  = evaluate(node.children.get(0), scope);
+                if (name.contains(".")) setNestedProperty(name, val, scope);
+                else {
+                    if (scope.containsKey(name)) scope.put(name, val);
+                    else globalScope.put(name, val);
+                }
+                return null;
             }
 
-            case "إيقاف":
-                throw new BreakException();
+            case "تعيين_زائد": {
+                Object cur = getVar(node.value, scope);
+                Object val = evaluate(node.children.get(0), scope);
+                setVar(node.value, add(cur, val), scope);
+                return null;
+            }
 
-            case "استمر":
-                throw new ContinueException();
+            case "تعيين_ناقص": {
+                Object cur = getVar(node.value, scope);
+                Object val = evaluate(node.children.get(0), scope);
+                setVar(node.value, toFloat(cur) - toFloat(val), scope);
+                return null;
+            }
 
-            case "استدعاء":
-                return evaluate(node, scope);
-
-            case "تعبير":
-                return evaluate(node.children.get(0), scope);
+            case "تعريف_متغير": {
+                Object val = node.children.isEmpty() ? null
+                           : evaluate(node.children.get(0), scope);
+                scope.put(node.value, val);
+                return null;
+            }
 
             default:
                 return evaluate(node, scope);
         }
     }
 
+    // ── تقييم التعبيرات ───────────────────────────────────────────────────
+
     @SuppressWarnings("unchecked")
     private Object evaluate(ASTNode node, Map<String, Object> scope) {
-        if (node == null) return null;
-
         switch (node.type) {
-            case "عدد":
-                try { return Float.parseFloat(node.value); }
-                catch (NumberFormatException e) { return 0f; }
 
-            case "نص":
-                return node.value;
-
-            case "صحيح":
-                return true;
-
-            case "خطأ":
-                return false;
-
-            case "فارغ":
-                return null;
-
-            case "قائمة": {
-                List<Object> list = new ArrayList<>();
-                for (ASTNode child : node.children) list.add(evaluate(child, scope));
-                return list;
-            }
-
-            case "قاموس": {
-                Map<String, Object> map = new HashMap<>();
-                for (int i = 0; i + 1 < node.children.size(); i += 2) {
-                    String key = node.children.get(i).value;
-                    Object val = evaluate(node.children.get(i + 1), scope);
-                    map.put(key, val);
-                }
-                return map;
-            }
+            case "عدد":   return Float.parseFloat(node.value);
+            case "نص":    return node.value;
+            case "صحيح":  return true;
+            case "خطأ":   return false;
+            case "فارغ":  return null;
 
             case "معرف": {
                 String name = node.value;
-                if (scope.containsKey(name)) return scope.get(name);
+                if (scope.containsKey(name))       return scope.get(name);
                 if (globalScope.containsKey(name)) return globalScope.get(name);
+                if (functions.containsKey(name))   return functions.get(name);
                 return null;
             }
 
             case "وصول_عضو": {
                 Object obj = evaluate(node.children.get(0), scope);
                 String member = node.value;
-                if (obj instanceof Map) return ((Map<String, Object>) obj).get(member);
-                if (obj instanceof GameObject) {
-                    Map<String, Object> proxy = createGameObjectProxy((GameObject) obj);
-                    return proxy.get(member);
+                if (obj instanceof Map) {
+                    Map<String, Object> map = (Map<String, Object>) obj;
+                    // setter/getter
+                    if (map.containsKey("_get_" + member) &&
+                        map.get("_get_" + member) instanceof BuiltinFunction) {
+                        return ((BuiltinFunction) map.get("_get_" + member)).call(new ArrayList<>());
+                    }
+                    return map.get(member);
                 }
                 return null;
+            }
+
+            case "قائمة": {
+                List<Object> list = new ArrayList<>();
+                for (ASTNode c : node.children) list.add(evaluate(c, scope));
+                return list;
+            }
+
+            case "قاموس": {
+                Map<String, Object> dict = new HashMap<>();
+                for (int i = 0; i < node.children.size() - 1; i += 2) {
+                    String key = node.children.get(i).value;
+                    Object val = evaluate(node.children.get(i + 1), scope);
+                    dict.put(key, val);
+                }
+                return dict;
             }
 
             case "فهرس": {
@@ -536,7 +537,7 @@ public class RemiScriptInterpreter {
                     List<?> list = (List<?>) obj;
                     return (i >= 0 && i < list.size()) ? list.get(i) : null;
                 }
-                if (obj instanceof Map) return ((Map<?, ?>) obj).get(toString(idx));
+                if (obj instanceof Map) return ((Map<?, ?>) obj).get(toStr(idx));
                 return null;
             }
 
@@ -544,105 +545,159 @@ public class RemiScriptInterpreter {
                 Object callee;
                 Object thisObj = null;
 
-                if (node.children.get(0).type.equals("وصول_عضو")) {
-                    thisObj = evaluate(node.children.get(0).children.get(0), scope);
-                    String methodName = node.children.get(0).value;
-                    if (thisObj instanceof Map) {
-                        callee = ((Map<?, ?>) thisObj).get(methodName);
-                    } else {
-                        callee = null;
-                    }
+                ASTNode calleeNode = node.children.get(0);
+                if (calleeNode.type.equals("وصول_عضو")) {
+                    thisObj = evaluate(calleeNode.children.get(0), scope);
+                    String methodName = calleeNode.value;
+                    callee = (thisObj instanceof Map)
+                           ? ((Map<?, ?>) thisObj).get(methodName)
+                           : null;
                 } else {
-                    callee = evaluate(node.children.get(0), scope);
+                    callee = evaluate(calleeNode, scope);
                 }
 
                 List<Object> args = new ArrayList<>();
-                for (int i = 1; i < node.children.size(); i++) {
+                for (int i = 1; i < node.children.size(); i++)
                     args.add(evaluate(node.children.get(i), scope));
-                }
 
-                if (callee instanceof BuiltinFunction) {
+                if (callee instanceof BuiltinFunction)
                     return ((BuiltinFunction) callee).call(args);
-                }
-                if (callee instanceof ScriptFunction) {
+                if (callee instanceof ScriptFunction)
                     return callFunction((ScriptFunction) callee, args, scope);
-                }
                 return null;
             }
 
-            // عمليات ثنائية
-            case "زائد": return add(evaluate(node.children.get(0), scope), evaluate(node.children.get(1), scope));
-            case "ناقص": return toFloat(evaluate(node.children.get(0), scope)) - toFloat(evaluate(node.children.get(1), scope));
-            case "ضرب":  return toFloat(evaluate(node.children.get(0), scope)) * toFloat(evaluate(node.children.get(1), scope));
+            // ── زائد_زائد / ناقص_ناقص ───────────────────────────────────
+            case "زائد_زائد_بعدي": {
+                String v = node.children.get(0).value;
+                float old = toFloat(getVar(v, scope));
+                setVar(v, old + 1f, scope);
+                return old;
+            }
+            case "ناقص_ناقص_بعدي": {
+                String v = node.children.get(0).value;
+                float old = toFloat(getVar(v, scope));
+                setVar(v, old - 1f, scope);
+                return old;
+            }
+            case "زائد_زائد_قبلي": {
+                String v = node.children.get(0).value;
+                float nv = toFloat(getVar(v, scope)) + 1f;
+                setVar(v, nv, scope);
+                return nv;
+            }
+            case "ناقص_ناقص_قبلي": {
+                String v = node.children.get(0).value;
+                float nv = toFloat(getVar(v, scope)) - 1f;
+                setVar(v, nv, scope);
+                return nv;
+            }
+
+            // ── عمليات ثنائية ──────────────────────────────────────────
+            case "زائد":        return add(evaluate(node.children.get(0), scope), evaluate(node.children.get(1), scope));
+            case "ناقص":        return toFloat(evaluate(node.children.get(0), scope)) - toFloat(evaluate(node.children.get(1), scope));
+            case "ضرب":         return toFloat(evaluate(node.children.get(0), scope)) * toFloat(evaluate(node.children.get(1), scope));
             case "قسمة": {
                 float b = toFloat(evaluate(node.children.get(1), scope));
                 return b != 0 ? toFloat(evaluate(node.children.get(0), scope)) / b : 0f;
             }
-            case "باقي": return toFloat(evaluate(node.children.get(0), scope)) % toFloat(evaluate(node.children.get(1), scope));
+            case "باقي":        return toFloat(evaluate(node.children.get(0), scope)) % toFloat(evaluate(node.children.get(1), scope));
             case "يساوي_يساوي": return equals(evaluate(node.children.get(0), scope), evaluate(node.children.get(1), scope));
-            case "لا_يساوي": return !equals(evaluate(node.children.get(0), scope), evaluate(node.children.get(1), scope));
-            case "أكبر": return toFloat(evaluate(node.children.get(0), scope)) > toFloat(evaluate(node.children.get(1), scope));
-            case "أصغر": return toFloat(evaluate(node.children.get(0), scope)) < toFloat(evaluate(node.children.get(1), scope));
-            case "أكبر_يساوي": return toFloat(evaluate(node.children.get(0), scope)) >= toFloat(evaluate(node.children.get(1), scope));
-            case "أصغر_يساوي": return toFloat(evaluate(node.children.get(0), scope)) <= toFloat(evaluate(node.children.get(1), scope));
-            case "و": return isTruthy(evaluate(node.children.get(0), scope)) && isTruthy(evaluate(node.children.get(1), scope));
-            case "أو":  return isTruthy(evaluate(node.children.get(0), scope)) || isTruthy(evaluate(node.children.get(1), scope));
-            case "ليس": return !isTruthy(evaluate(node.children.get(0), scope));
-            case "سالب": return -toFloat(evaluate(node.children.get(0), scope));
+            case "لا_يساوي":    return !equals(evaluate(node.children.get(0), scope), evaluate(node.children.get(1), scope));
+            case "أكبر":        return toFloat(evaluate(node.children.get(0), scope)) > toFloat(evaluate(node.children.get(1), scope));
+            case "أصغر":        return toFloat(evaluate(node.children.get(0), scope)) < toFloat(evaluate(node.children.get(1), scope));
+            case "أكبر_يساوي":  return toFloat(evaluate(node.children.get(0), scope)) >= toFloat(evaluate(node.children.get(1), scope));
+            case "أصغر_يساوي":  return toFloat(evaluate(node.children.get(0), scope)) <= toFloat(evaluate(node.children.get(1), scope));
+            case "و":           return isTruthy(evaluate(node.children.get(0), scope)) && isTruthy(evaluate(node.children.get(1), scope));
+            case "أو":          return isTruthy(evaluate(node.children.get(0), scope)) || isTruthy(evaluate(node.children.get(1), scope));
+            case "ليس":         return !isTruthy(evaluate(node.children.get(0), scope));
+            case "سالب":        return -toFloat(evaluate(node.children.get(0), scope));
+
+            // ── Bitwise (جديد في v2) ────────────────────────────────────
+            case "و_بتي":       return (float)((int)toFloat(evaluate(node.children.get(0), scope)) & (int)toFloat(evaluate(node.children.get(1), scope)));
+            case "أو_بتي":      return (float)((int)toFloat(evaluate(node.children.get(0), scope)) | (int)toFloat(evaluate(node.children.get(1), scope)));
+            case "أو_حصري":     return (float)((int)toFloat(evaluate(node.children.get(0), scope)) ^ (int)toFloat(evaluate(node.children.get(1), scope)));
+            case "إزاحة_يسار":  return (float)((int)toFloat(evaluate(node.children.get(0), scope)) << (int)toFloat(evaluate(node.children.get(1), scope)));
+            case "إزاحة_يمين":  return (float)((int)toFloat(evaluate(node.children.get(0), scope)) >> (int)toFloat(evaluate(node.children.get(1), scope)));
 
             default: return null;
         }
     }
 
-    private Object callFunction(ScriptFunction func, List<Object> args, Map<String, Object> callerScope) {
-        Map<String, Object> funcScope = new HashMap<>(func.closure);
-        for (int i = 0; i < func.params.size(); i++) {
-            funcScope.put(func.params.get(i), i < args.size() ? args.get(i) : null);
-        }
+    // ── أدوات مساعدة ──────────────────────────────────────────────────────
+
+    private Object callFunction(ScriptFunction fn, List<Object> args,
+                                Map<String, Object> callerScope) {
+        Map<String, Object> fnScope = new HashMap<>(fn.closure);
+        for (int i = 0; i < fn.params.size(); i++)
+            fnScope.put(fn.params.get(i), i < args.size() ? args.get(i) : null);
         try {
-            return executeBlock(func.body, funcScope);
+            return executeBlock(fn.body, fnScope);
         } catch (ReturnException r) {
             return r.value;
         }
+    }
+
+    private Object getVar(String name, Map<String, Object> scope) {
+        if (scope.containsKey(name))       return scope.get(name);
+        if (globalScope.containsKey(name)) return globalScope.get(name);
+        return null;
+    }
+
+    private void setVar(String name, Object val, Map<String, Object> scope) {
+        if (scope.containsKey(name)) scope.put(name, val);
+        else globalScope.put(name, val);
     }
 
     @SuppressWarnings("unchecked")
     private void setNestedProperty(String path, Object value, Map<String, Object> scope) {
         String[] parts = path.split("\\.");
         Object obj = scope.containsKey(parts[0]) ? scope.get(parts[0]) : globalScope.get(parts[0]);
-        if (obj instanceof Map && parts.length == 2) {
-            ((Map<String, Object>) obj).put(parts[1], value);
+        if (!(obj instanceof Map)) return;
+
+        Map<String, Object> map = (Map<String, Object>) obj;
+        for (int i = 1; i < parts.length - 1; i++) {
+            Object nested = map.get(parts[i]);
+            if (nested instanceof Map) map = (Map<String, Object>) nested;
+            else return;
+        }
+        String last = parts[parts.length - 1];
+        String setter = "_set_" + last;
+        if (map.containsKey(setter) && map.get(setter) instanceof BuiltinFunction) {
+            ((BuiltinFunction) map.get(setter)).call(List.of(value));
+        } else {
+            map.put(last, value);
         }
     }
-
-    // ─── أدوات مساعدة ───
 
     private float toFloat(Object val) {
         if (val instanceof Number) return ((Number) val).floatValue();
         if (val instanceof Boolean) return (Boolean) val ? 1f : 0f;
         if (val instanceof String) {
-            try { return Float.parseFloat((String) val); } catch (Exception e) { return 0f; }
+            try { return Float.parseFloat((String) val); }
+            catch (Exception e) { return 0f; }
         }
         return 0f;
     }
 
-    private String toString(Object val) {
-        if (val == null) return "فارغ";
+    private String toStr(Object val) {
+        if (val == null)         return "فارغ";
         if (val instanceof Boolean) return (Boolean) val ? "صحيح" : "خطأ";
         if (val instanceof Float) {
             float f = (Float) val;
-            if (f == Math.floor(f)) return String.valueOf((int) f);
+            if (f == Math.floor(f) && !Float.isInfinite(f))
+                return String.valueOf((int) f);
             return String.valueOf(f);
         }
         return val.toString();
     }
 
     private boolean isTruthy(Object val) {
-        if (val == null) return false;
+        if (val == null)         return false;
         if (val instanceof Boolean) return (Boolean) val;
         if (val instanceof Number) return ((Number) val).floatValue() != 0;
         if (val instanceof String) return !((String) val).isEmpty();
-        if (val instanceof List) return !((List<?>) val).isEmpty();
+        if (val instanceof List)   return !((List<?>) val).isEmpty();
         return true;
     }
 
@@ -656,26 +711,31 @@ public class RemiScriptInterpreter {
 
     private Object add(Object a, Object b) {
         if (a instanceof String || b instanceof String)
-            return toString(a) + toString(b);
+            return toStr(a) + toStr(b);
         return toFloat(a) + toFloat(b);
     }
 
-    // الواجهات الداخلية
+    // ── الواجهات الداخلية ─────────────────────────────────────────────────
+
     public interface BuiltinFunction {
         Object call(List<Object> args);
     }
 
     public static class ScriptFunction {
-        final String name;
-        final List<String> params;
-        final List<ASTNode> body;
-        final Map<String, Object> closure;
+        public final String            name;
+        public final List<String>      params;
+        public final List<ASTNode>     body;
+        public final Map<String, Object> closure;
 
-        ScriptFunction(String name, List<String> params, List<ASTNode> body, Map<String, Object> closure) {
-            this.name = name; this.params = params; this.body = body; this.closure = closure;
+        public ScriptFunction(String name, List<String> params,
+                               List<ASTNode> body, Map<String, Object> closure) {
+            this.name    = name;
+            this.params  = params;
+            this.body    = body;
+            this.closure = closure;
         }
     }
 
     public Map<String, Object> getGlobalScope() { return globalScope; }
-    public GameEngine getEngine() { return engine; }
+    public GameEngine           getEngine()      { return engine; }
 }
