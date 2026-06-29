@@ -345,11 +345,28 @@ public class RemiScriptInterpreter {
             RemiScriptLexer lexer = new RemiScriptLexer(code);
             List<Token> tokens = lexer.tokenize();
             RemiScriptParser parser = new RemiScriptParser(tokens);
-            ParsedScript parsed = parser.parse();
+            List<ASTNode> ast = parser.parseProgram();
+            ParsedScript parsed = new ParsedScript(name, code, ast);
             loadedScripts.put(name, parsed);
-            executeBlock(parsed.statements, new HashMap<>(globalScope));
+            executeBlock(parsed.ast, new HashMap<>(globalScope));
         } catch (Exception e) {
             Log.e(TAG, "خطأ في تنفيذ " + name + ": " + e.getMessage(), e);
+        }
+    }
+
+    // ── تحديث كل إطار ─────────────────────────────────────────────────────
+
+    /**
+     * يُستدعى من GameEngine في كل إطار لتشغيل سكربتات وأحداث OnUpdate
+     */
+    public void update(float dt) {
+        Map<String, Object> args = new HashMap<>();
+        args.put("دت", dt);
+        args.put("dt", dt);
+        callEvent("OnUpdate", args);
+        List<String> scripts = eventScripts.get("OnUpdate");
+        if (scripts != null) {
+            for (String s : scripts) runScript(s, "event_OnUpdate");
         }
     }
 
@@ -380,9 +397,12 @@ public class RemiScriptInterpreter {
             case "برنامج":
                 return executeBlock(node.children, scope);
 
-            case "تعريف_دالة": {
+            case "تعبير":
+                return evaluate(node.children.get(0), scope);
+
+            case "دالة": {
                 ScriptFunction fn = new ScriptFunction(
-                    node.value, node.params, node.children, new HashMap<>(scope));
+                    node.value, node.params, node.block, new HashMap<>(scope));
                 functions.put(node.value, fn);
                 globalScope.put(node.value, fn);
                 return null;
@@ -391,10 +411,9 @@ public class RemiScriptInterpreter {
             case "إذا": {
                 boolean cond = isTruthy(evaluate(node.children.get(0), scope));
                 if (cond) {
-                    executeBlock(node.children.subList(1,
-                        node.elseIndex > 0 ? node.elseIndex : node.children.size()), scope);
-                } else if (node.elseIndex > 0) {
-                    executeBlock(node.children.subList(node.elseIndex, node.children.size()), scope);
+                    executeBlock(node.block, scope);
+                } else if (node.elseBlock != null) {
+                    executeBlock(node.elseBlock, scope);
                 }
                 return null;
             }
@@ -402,7 +421,7 @@ public class RemiScriptInterpreter {
             case "طالما": {
                 while (isTruthy(evaluate(node.children.get(0), scope))) {
                     try {
-                        executeBlock(node.children.subList(1, node.children.size()), scope);
+                        executeBlock(node.block, scope);
                     } catch (BreakException e)    { break; }
                       catch (ContinueException e) { }
                 }
@@ -416,7 +435,7 @@ public class RemiScriptInterpreter {
                 for (Object item : list) {
                     scope.put(var, item);
                     try {
-                        executeBlock(node.children.subList(1, node.children.size()), scope);
+                        executeBlock(node.block, scope);
                     } catch (BreakException e)    { break; }
                       catch (ContinueException e) { }
                 }
@@ -428,7 +447,7 @@ public class RemiScriptInterpreter {
                 for (int i = 0; i < count; i++) {
                     scope.put("i", (float) i);
                     try {
-                        executeBlock(node.children.subList(1, node.children.size()), scope);
+                        executeBlock(node.block, scope);
                     } catch (BreakException e)    { break; }
                       catch (ContinueException e) { }
                 }
@@ -442,31 +461,21 @@ public class RemiScriptInterpreter {
                     node.children.isEmpty() ? null : evaluate(node.children.get(0), scope));
 
             case "تعيين": {
-                String name = node.value;
-                Object val  = evaluate(node.children.get(0), scope);
-                if (name.contains(".")) setNestedProperty(name, val, scope);
-                else {
+                ASTNode target = node.children.get(0);
+                Object val = evaluate(node.children.get(1), scope);
+                if (target.type.equals("وصول_عضو")) {
+                    Object obj = evaluate(target.children.get(0), scope);
+                    setMemberProperty(obj, target.value, val);
+                } else {
+                    String name = target.value;
                     if (scope.containsKey(name)) scope.put(name, val);
                     else globalScope.put(name, val);
                 }
                 return null;
             }
 
-            case "تعيين_زائد": {
-                Object cur = getVar(node.value, scope);
-                Object val = evaluate(node.children.get(0), scope);
-                setVar(node.value, add(cur, val), scope);
-                return null;
-            }
-
-            case "تعيين_ناقص": {
-                Object cur = getVar(node.value, scope);
-                Object val = evaluate(node.children.get(0), scope);
-                setVar(node.value, toFloat(cur) - toFloat(val), scope);
-                return null;
-            }
-
-            case "تعريف_متغير": {
+            case "متغير":
+            case "ثابت": {
                 Object val = node.children.isEmpty() ? null
                            : evaluate(node.children.get(0), scope);
                 scope.put(node.value, val);
@@ -650,23 +659,14 @@ public class RemiScriptInterpreter {
     }
 
     @SuppressWarnings("unchecked")
-    private void setNestedProperty(String path, Object value, Map<String, Object> scope) {
-        String[] parts = path.split("\\.");
-        Object obj = scope.containsKey(parts[0]) ? scope.get(parts[0]) : globalScope.get(parts[0]);
+    private void setMemberProperty(Object obj, String member, Object value) {
         if (!(obj instanceof Map)) return;
-
         Map<String, Object> map = (Map<String, Object>) obj;
-        for (int i = 1; i < parts.length - 1; i++) {
-            Object nested = map.get(parts[i]);
-            if (nested instanceof Map) map = (Map<String, Object>) nested;
-            else return;
-        }
-        String last = parts[parts.length - 1];
-        String setter = "_set_" + last;
+        String setter = "_set_" + member;
         if (map.containsKey(setter) && map.get(setter) instanceof BuiltinFunction) {
             ((BuiltinFunction) map.get(setter)).call(List.of(value));
         } else {
-            map.put(last, value);
+            map.put(member, value);
         }
     }
 
