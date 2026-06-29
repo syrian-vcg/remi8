@@ -115,10 +115,14 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
 
       - name: "إعداد Keystore للتوقيع"
-        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
-        run: echo "$KEYSTORE_BASE64" | base64 -d > app/remi8.keystore
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > app/remi8.keystore
+          else
+            echo "لا يوجد Keystore — سيتم البناء بدون توقيع"
+          fi
 
       - name: "بناء APK Release"
         env:
