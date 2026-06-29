@@ -99,7 +99,8 @@ public class RemiScriptParser {
      * تحليل تعريف متغير: متغير اسم = قيمة
      */
     private ASTNode parseVarDecl() {
-        String kind = advance().type == TokenType.ثابت ? "ثابت" : "متغير";
+        Token kindToken = advance();
+        String kind = kindToken.type == TokenType.ثابت ? "ثابت" : "متغير";
         Token name = expect(TokenType.معرف);
         ASTNode node = new ASTNode(kind, name.value);
 
@@ -374,7 +375,17 @@ public class RemiScriptParser {
         ASTNode expr = parsePrimary();
 
         while (true) {
-            if (check(TokenType.نقطة)) {
+            if (check(TokenType.زائد_زائد)) {
+                advance();
+                ASTNode inc = new ASTNode("زائد_زائد_بعدي");
+                inc.addChild(expr);
+                expr = inc;
+            } else if (check(TokenType.ناقص_ناقص)) {
+                advance();
+                ASTNode dec = new ASTNode("ناقص_ناقص_بعدي");
+                dec.addChild(expr);
+                expr = dec;
+            } else if (check(TokenType.نقطة)) {
                 advance();
                 Token member = expect(TokenType.معرف);
                 ASTNode access = new ASTNode("وصول_عضو", member.value);
