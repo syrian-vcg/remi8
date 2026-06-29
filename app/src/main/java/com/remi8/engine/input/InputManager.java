@@ -25,6 +25,11 @@ public class InputManager {
     private boolean buttonB = false;
     private boolean buttonJump = false;
 
+    // حالة الأزرار في الإطار السابق (لاكتشاف "الضغط فقط")
+    private final Map<String, Boolean> previousButtonState = new HashMap<>();
+    private boolean buttonLeftPrevFrame, buttonRightPrevFrame, buttonUpPrevFrame,
+                    buttonDownPrevFrame, buttonAPrevFrame, buttonBPrevFrame, buttonJumpPrevFrame;
+
     // إيماءة التمرير
     private float swipeStartX, swipeStartY;
     private boolean isSwiping = false;
@@ -106,6 +111,16 @@ public class InputManager {
      * تحديث في كل إطار
      */
     public void update() {
+        // حفظ حالة الأزرار من الإطار السابق *قبل* معالجة أي تغييرات لهذا الإطار
+        // (تُستخدم بواسطة isButtonJustPressed عندما تُشغَّل السكربتات لاحقاً في نفس الإطار)
+        previousButtonState.put("يسار", buttonLeftPrevFrame);
+        previousButtonState.put("يمين", buttonRightPrevFrame);
+        previousButtonState.put("أعلى", buttonUpPrevFrame);
+        previousButtonState.put("أسفل", buttonDownPrevFrame);
+        previousButtonState.put("أ", buttonAPrevFrame);
+        previousButtonState.put("ب", buttonBPrevFrame);
+        previousButtonState.put("قفز", buttonJumpPrevFrame);
+
         synchronized (pendingEvents) {
             pendingEvents.clear();
         }
@@ -114,6 +129,15 @@ public class InputManager {
             joystickX = 0;
             joystickY = 0;
         }
+
+        // تسجيل حالة هذا الإطار لتُستخدم كـ "سابقة" في الإطار القادم
+        buttonLeftPrevFrame  = buttonLeft;
+        buttonRightPrevFrame = buttonRight;
+        buttonUpPrevFrame    = buttonUp;
+        buttonDownPrevFrame  = buttonDown;
+        buttonAPrevFrame     = buttonA;
+        buttonBPrevFrame     = buttonB;
+        buttonJumpPrevFrame  = buttonJump;
     }
 
     /**
@@ -186,6 +210,24 @@ public class InputManager {
             case "قفز": return buttonJump;
             default: return false;
         }
+    }
+
+    /**
+     * هل تم الضغط على الزر في هذا الإطار فقط (لم يكن مضغوطاً في الإطار السابق)؟
+     */
+    public boolean isButtonJustPressed(String name) {
+        boolean now = isButtonPressed(name);
+        boolean prev = previousButtonState.getOrDefault(name, false);
+        return now && !prev;
+    }
+
+    /**
+     * محور الإدخال (جويستيك افتراضي أو أزرار) — "x" أو "y"
+     */
+    public float getAxis(String axis) {
+        if ("x".equals(axis)) return joystickX;
+        if ("y".equals(axis)) return joystickY;
+        return 0f;
     }
 
     public float getJoystickX() { return joystickX; }
