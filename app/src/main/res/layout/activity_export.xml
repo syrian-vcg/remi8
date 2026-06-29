@@ -70,7 +70,7 @@
                 <EditText android:id="@+id/game_name_input"
                     android:layout_width="match_parent" android:layout_height="wrap_content"
                     android:hint="مثال: مغامرة الفضاء"
-                    android:textColor="#ffffff" android:hintTextColor="#5c6370"
+                    android:textColor="#ffffff" android:textColorHint="#5c6370"
                     android:background="#2a2a4a" android:padding="10dp"
                     android:layout_marginBottom="12dp"/>
 
@@ -80,7 +80,7 @@
                 <EditText android:id="@+id/package_name_input"
                     android:layout_width="match_parent" android:layout_height="wrap_content"
                     android:hint="com.company.gamename"
-                    android:textColor="#ffffff" android:hintTextColor="#5c6370"
+                    android:textColor="#ffffff" android:textColorHint="#5c6370"
                     android:background="#2a2a4a" android:padding="10dp"
                     android:inputType="text"
                     android:layout_marginBottom="12dp"/>
