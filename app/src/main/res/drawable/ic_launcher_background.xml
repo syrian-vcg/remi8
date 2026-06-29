@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- خلفية الأيقونة التكيّفية - REMI8 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- خلفية متدرجة كحلية داكنة -->
+    <path android:pathData="M0,0 L108,0 L108,108 L0,108 Z">
+        <aapt:attr xmlns:aapt="http://schemas.android.com/aapt" name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="0"
+                android:startY="0"
+                android:endX="108"
+                android:endY="108"
+                android:startColor="#1B1F3B"
+                android:centerColor="#14172E"
+                android:endColor="#0D0F22" />
+        </aapt:attr>
+    </path>
+
+    <!-- توهج دائري ناعم خلف الرمز -->
+    <path android:fillColor="#1AFF6B57" android:pathData="M54,54 m-40,0 a40,40 0 1,0 80,0 a40,40 0 1,0 -80,0"/>
+</vector>
