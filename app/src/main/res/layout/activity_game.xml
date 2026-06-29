@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- تخطيط شاشة اللعبة - REMI8 -->
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000">
+
+    <!-- سطح اللعبة الرئيسي -->
+    <com.remi8.engine.core.GameView
+        android:id="@+id/game_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+    <!-- عرض FPS (يُظهر في وضع Debug) -->
+    <TextView
+        android:id="@+id/fps_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:text="FPS: --"
+        android:textColor="#88ffffff"
+        android:textSize="12sp"
+        android:fontFamily="monospace"
+        android:padding="8dp"
+        android:background="#44000000"/>
+
+</FrameLayout>
