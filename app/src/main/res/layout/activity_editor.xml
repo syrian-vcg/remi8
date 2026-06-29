@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- تخطيط المحرر الرئيسي - REMI8 -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#1a1a2e">
+
+    <!-- ── شريط الأدوات العلوي ── -->
+    <LinearLayout
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:background="#0f0f23"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:elevation="4dp">
+
+        <!-- شعار REMI8 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🎮 REMI8"
+            android:textColor="#e63946"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:paddingEnd="12dp"/>
+
+        <!-- اسم المشروع -->
+        <TextView
+            android:id="@+id/project_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="مشروع_جديد"
+            android:textColor="#aaaacc"
+            android:textSize="14sp"/>
+
+        <!-- أزرار التشغيل -->
+        <Button
+            android:id="@+id/btn_play"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="▶ تشغيل"
+            android:textColor="#ffffff"
+            android:backgroundTint="#2a9d8f"
+            android:textSize="12sp"
+            android:layout_marginEnd="4dp"/>
+
+        <Button
+            android:id="@+id/btn_stop"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="⏹"
+            android:textColor="#ffffff"
+            android:backgroundTint="#4a4a6a"
+            android:layout_marginEnd="8dp"/>
+
+        <!-- أزرار إضافية -->
+        <Button
+            android:id="@+id/btn_new_scene"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="🗋"
+            android:textColor="#ffffff"
+            android:backgroundTint="#3a3f4b"
+            android:layout_marginEnd="4dp"/>
+
+        <Button
+            android:id="@+id/btn_save"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="💾"
+            android:textColor="#ffffff"
+            android:backgroundTint="#3a3f4b"
+            android:layout_marginEnd="4dp"/>
+
+        <Button
+            android:id="@+id/btn_export"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="📦"
+            android:textColor="#ffffff"
+            android:backgroundTint="#e63946"
+            android:layout_marginEnd="4dp"/>
+
+        <Button
+            android:id="@+id/btn_settings"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="⚙"
+            android:textColor="#ffffff"
+            android:backgroundTint="#3a3f4b"/>
+
+        <!-- عرض FPS -->
+        <TextView
+            android:id="@+id/fps_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="FPS: --"
+            android:textColor="#5c6370"
+            android:textSize="11sp"
+            android:paddingStart="8dp"/>
+    </LinearLayout>
+
+    <!-- ── المنطقة الرئيسية ── -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal">
+
+        <!-- ─ اللوحة اليسرى: قائمة الكائنات ─ -->
+        <LinearLayout
+            android:layout_width="200dp"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:background="#16213e">
+
+            <!-- رأس قائمة الكائنات -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="#0f0f23"
+                android:paddingStart="8dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="📋 الكائنات"
+                    android:textColor="#aaaacc"
+                    android:textSize="13sp"/>
+
+                <Button
+                    android:id="@+id/btn_add_object"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:text="+"
+                    android:textColor="#ffffff"
+                    android:backgroundTint="#e63946"
+                    android:textSize="16sp"
+                    android:layout_marginEnd="4dp"/>
+            </LinearLayout>
+
+            <!-- قائمة الكائنات -->
+            <ListView
+                android:id="@+id/object_list"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:background="#1e2035"
+                android:divider="#2a2a4a"
+                android:dividerHeight="1dp"/>
+
+            <!-- أزرار السفلى -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:background="#0f0f23"
+                android:padding="4dp">
+
+                <Button
+                    android:id="@+id/btn_script_editor"
+                    android:layout_width="match_parent"
+                    android:layout_height="36dp"
+                    android:text="✏ remiscript"
+                    android:textColor="#c678dd"
+                    android:backgroundTint="#2a2a4a"
+                    android:textSize="12sp"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- ─ منطقة العرض الرئيسية ─ -->
+        <com.remi8.editor.EditorView
+            android:id="@+id/editor_view"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="#1a1a2e"/>
+
+        <!-- ─ اللوحة اليمنى: الخصائص ─ -->
+        <LinearLayout
+            android:layout_width="220dp"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:background="#16213e">
+
+            <!-- رأس لوحة الخصائص -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:text="🔧 الخصائص"
+                android:textColor="#aaaacc"
+                android:textSize="13sp"
+                android:gravity="center_vertical"
+                android:paddingStart="8dp"
+                android:background="#0f0f23"/>
+
+            <!-- لوحة الخصائص - قابلة للتمرير -->
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <LinearLayout
+                    android:id="@+id/properties_panel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="8dp"/>
+            </ScrollView>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- ── شريط الأدوات السفلي ── -->
+    <LinearLayout
+        android:id="@+id/tools_panel"
+        android:layout_width="match_parent"
+        android:layout_height="36dp"
+        android:background="#0f0f23"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="8dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="REMI8 Engine v1.0 | remiscript"
+            android:textColor="#3a3f5b"
+            android:textSize="11sp"/>
+
+        <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Android 8.0+ | Java"
+            android:textColor="#3a3f5b"
+            android:textSize="11sp"
+            android:paddingEnd="8dp"/>
+    </LinearLayout>
+
+</LinearLayout>
