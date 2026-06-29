@@ -1,211 +1,219 @@
-# 🎮 REMI8 - محرك الألعاب ثنائية الأبعاد
+# 🎮 REMI8 Script Graph - الدليل الكامل
 
 <div align="center">
 
-![REMI8 Logo](app/src/main/res/drawable/ic_launcher.xml)
-
-**محرك ألعاب 2D كامل للأندرويد بلغة remiscript العربية**
-
-[![Build Status](https://github.com/yourusername/REMI8/actions/workflows/build.yml/badge.svg)](https://github.com/yourusername/REMI8/actions)
-[![Android](https://img.shields.io/badge/Android-8.0%2B-green)](https://developer.android.com)
-[![Java](https://img.shields.io/badge/Java-11-orange)](https://java.com)
-[![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
+**محرك Script Graph المرئي + C++ JNI + remiscript v2**
 
 </div>
 
 ---
 
-## ✨ المميزات
+## 🏗️ البنية الكاملة
 
-| الميزة | الوصف |
-|--------|-------|
-| 🔴 **محرك اللعبة** | حلقة لعبة 60 FPS بخيط منفصل |
-| ✏️ **remiscript** | لغة برمجة عربية مخصصة للألعاب |
-| ⚡ **الفيزياء** | جاذبية، تصادمات AABB، ارتداد |
-| 🎵 **الصوت** | مؤثرات + موسيقى خلفية (SoundPool + MediaPlayer) |
-| 🗺️ **TileMap** | خرائط بلاطات للمستويات |
-| ✨ **Particles** | نظام جسيمات (انفجارات، نجوم، دخان) |
-| 🎬 **Sprites** | رسوم متحركة frame-by-frame |
-| 📷 **Camera2D** | كاميرا متقدمة مع تتبع واهتزاز |
-| 💾 **Save System** | حفظ وتحميل بيانات اللعبة |
-| 📦 **تصدير APK** | تصدير اللعبة كـ APK + GitHub Actions |
-| 📱 **Android 8+** | يدعم API 26 وما فوق |
+```
+remi8-scriptgraph/
+│
+├── app/src/main/
+│   │
+│   ├── cpp/                              ← C++ Engine
+│   │   ├── CMakeLists.txt               ← إعداد CMake
+│   │   └── remiscript_engine.cpp        ← محرك C++ الأساسي
+│   │       ├── ScriptNode (struct)      ← بنية العقدة
+│   │       ├── ScriptGraph (class)      ← إدارة Graph
+│   │       │   ├── addNode()
+│   │       │   ├── connect()
+│   │       │   ├── evaluate()           ← تقييم C++ سريع
+│   │       │   ├── executeEvent()
+│   │       │   └── exportToRemiScript() ← توليد كود
+│   │       └── JNI Functions            ← Java↔C++ Bridge
+│   │
+│   ├── java/com/remi8/
+│   │   │
+│   │   ├── scriptgraph/                 ← Script Graph System
+│   │   │   ├── ScriptGraphEngine.java   ← JNI Bridge (Java side)
+│   │   │   ├── ScriptGraphView.java     ← Canvas رسم العقد
+│   │   │   ├── ScriptGraphActivity.java ← الشاشة الرئيسية
+│   │   │   └── nodes/
+│   │   │       └── ScriptNode.java      ← نموذج بيانات العقدة
+│   │   │
+│   │   ├── remiscript/                  ← لغة remiscript v2
+│   │   │   ├── parser/
+│   │   │   │   └── RemiScriptLexer.java ← المحلل اللغوي
+│   │   │   └── interpreter/
+│   │   │       ├── RemiScriptInterpreter.java ← المفسّر v2
+│   │   │       ├── RemiScriptParser.java
+│   │   │       ├── ASTNode.java
+│   │   │       └── ParsedScript.java
+│   │   │
+│   │   ├── engine/                      ← محرك اللعبة
+│   │   │   ├── core/ (GameEngine, GameObject, GameView...)
+│   │   │   ├── renderer/ (Renderer2D, Camera2D, Particles...)
+│   │   │   ├── physics/ (PhysicsEngine, PhysicsBody)
+│   │   │   ├── audio/ (AudioManager)
+│   │   │   ├── input/ (InputManager)
+│   │   │   └── scene/ (SceneManager, Scene, TileMap)
+│   │   │
+│   │   └── editor/                      ← محرر المشاريع
+│   │       ├── EditorActivity.java
+│   │       ├── ScriptEditorActivity.java
+│   │       └── ProjectManager.java
+│   │
+│   └── res/
+│       ├── layout/
+│       │   └── activity_script_graph.xml
+│       └── values/
+│           ├── strings.xml
+│           └── styles.xml
+│
+└── app/build.gradle                     ← CMake + JNI config
+```
 
 ---
 
-## 🚀 تثبيت المشروع
+## 🔗 تدفق البيانات
 
-### المتطلبات
-- Android Studio Hedgehog أو أحدث
-- Java 11+
-- Android SDK 34
-- Gradle 8.4+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    Script Graph UI                       │
+│  ScriptGraphActivity                                     │
+│  ┌──────────────────┐   ┌──────────────────────────┐    │
+│  │  ScriptGraphView │   │  Node Palette            │    │
+│  │  (Canvas/Touch)  │   │  + / Drag / Connect      │    │
+│  └────────┬─────────┘   └──────────────────────────┘    │
+└───────────┼─────────────────────────────────────────────┘
+            │ addNode / connect / evaluate
+            ▼
+┌─────────────────────────────────────────────────────────┐
+│              ScriptGraphEngine.java (JNI)                │
+│  Java bridge → native methods                            │
+└───────────────────────┬─────────────────────────────────┘
+                        │ JNI calls
+                        ▼
+┌─────────────────────────────────────────────────────────┐
+│           remiscript_engine.cpp (C++)                    │
+│                                                          │
+│  ScriptGraph::evaluate()  → توليد نتائج رياضية         │
+│  ScriptGraph::executeEvent() → تنفيذ سلسلة exec        │
+│  ScriptGraph::exportToRemiScript() → توليد كود عربي    │
+└───────────────────────┬─────────────────────────────────┘
+                        │ نتائج
+                        ▼
+┌─────────────────────────────────────────────────────────┐
+│        RemiScriptInterpreter v2 (Java)                   │
+│                                                          │
+│  Graph.تشغيل("OnUpdate")  ← من remiscript               │
+│  Graph.قيمة(nodeId, "O")  ← قراءة نتيجة عقدة          │
+│  Graph.تصدير()            ← تصدير كـ remiscript        │
+└─────────────────────────────────────────────────────────┘
+```
 
-### الخطوات
+---
+
+## 📋 أنواع العقد المدعومة
+
+| العقدة | النوع | الـ Pins | الوصف |
+|--------|-------|----------|-------|
+| **On Update** | Event | exec→ | يُطلق كل frame |
+| **On Start** | Event | exec→ | يُطلق عند البداية |
+| **Mathf Abs** | Math | →exec,F / exec,O→ | القيمة المطلقة |
+| **Mathf Min** | Math | →exec,A,B / exec,O→ | الأصغر |
+| **Mathf Max** | Math | →exec,A,B / exec,O→ | الأكبر |
+| **Mathf Sqrt** | Math | →exec,F / exec,O→ | الجذر التربيعي |
+| **Mathf Sin/Cos** | Math | →exec,F / exec,O→ | المثلثات |
+| **Subtract** | Math | →A,B / A-B→ | A - B |
+| **Add** | Math | →A,B / A+B→ | A + B |
+| **Multiply** | Math | →A,B / A×B→ | A × B |
+| **Divide** | Math | →A,B / A÷B→ | A ÷ B |
+| **Float** | Value | value→ | ثابت رقمي |
+| **Print** | Debug | →exec,Value / exec→ | طباعة |
+
+---
+
+## 🎮 استخدام Script Graph من remiscript
+
+```remiscript
+// تشغيل Graph مباشرة
+دالة تحديث(دت) {
+    // تشغيل حدث OnUpdate في الـ Graph
+    Graph.تشغيل("OnUpdate")
+    
+    // قراءة نتيجة عقدة معينة (id=3 وهي Abs)
+    متغير نتيجة = Graph.قيمة(3, "O")
+    طباعة("نتيجة Abs:", نتيجة)
+}
+
+// تصدير Graph كـ remiscript
+دالة بداية() {
+    متغير كود = Graph.تصدير()
+    طباعة(كود)
+}
+```
+
+---
+
+## 🔧 إضافة عقدة مخصصة
+
+### 1. في C++ (`remiscript_engine.cpp`):
+```cpp
+// في enum NodeType
+CUSTOM_LERP = 23,
+
+// في evaluate()
+case NodeType::CUSTOM_LERP: {
+    float a = getInput(node, "A", vars);
+    float b = getInput(node, "B", vars);
+    float t = getInput(node, "T", vars);
+    return a + (b - a) * t;
+}
+```
+
+### 2. في Java (`ScriptGraphEngine.java`):
+```java
+public static final int NODE_CUSTOM_LERP = 23;
+```
+
+### 3. في `ScriptNode.java` (setupPins):
+```java
+case 23: // CUSTOM_LERP
+    inputs.add(new Pin("A", PinType.FLOAT, true));
+    inputs.add(new Pin("B", PinType.FLOAT, true));
+    inputs.add(new Pin("T", PinType.FLOAT, true));
+    outputs.add(new Pin("O", PinType.FLOAT, false));
+    break;
+```
+
+---
+
+## ⚙️ إعداد المشروع
+
 ```bash
-git clone https://github.com/yourusername/REMI8.git
-cd REMI8
+# 1. انسخ الملفات الجديدة للمشروع الأصلي
+cp -r remi8-scriptgraph/app/src/main/cpp          remi8-main/app/src/main/
+cp -r remi8-scriptgraph/app/src/main/java/com/remi8/scriptgraph  \
+      remi8-main/app/src/main/java/com/remi8/
+
+# 2. استبدل المفسّر والـ build.gradle
+cp remi8-scriptgraph/app/build.gradle             remi8-main/app/
+cp remi8-scriptgraph/app/src/main/java/com/remi8/remiscript/interpreter/RemiScriptInterpreter.java \
+   remi8-main/app/src/main/java/com/remi8/remiscript/interpreter/
+
+# 3. بناء المشروع
+cd remi8-main
 ./gradlew assembleDebug
 ```
 
 ---
 
-## 📝 لغة remiscript
+## 📱 التحكم في الواجهة
 
-لغة برمجة مخصصة للألعاب، تدعم **العربية والإنجليزية**.
-
-### مثال أساسي
-
-```remiscript
-// متغيرات اللعبة
-متغير السرعة = 300
-متغير النقاط = 0
-
-// دالة البداية
-دالة بداية() {
-    طباعة("مرحباً في REMI8!")
-    هذا.تعيين_لون("#e63946")
-}
-
-// دالة التحديث (60 FPS)
-دالة تحديث(دت) {
-    إذا (مدخل.زر("يمين")) {
-        هذا.س += السرعة * دت
-    }
-    إذا (مدخل.زر("يسار")) {
-        هذا.س -= السرعة * دت
-    }
-    إذا (مدخل.زر("قفز") و هذا.علىالأرض) {
-        هذا.قفز(500)
-        صوت.شغّل("قفز")
-    }
-}
-
-// دالة التصادم
-دالة تصادم(الآخر) {
-    إذا (الآخر.وسم == "عملة") {
-        النقاط += 10
-        الآخر.تعطيل()
-    }
-}
-```
-
-### الكلمات المحجوزة العربية
-
-| الفئة | الكلمات |
-|-------|---------|
-| **التحكم** | `إذا` `وإلا` `طالما` `كرر` `لكل` `في` |
-| **الدوال** | `دالة` `إرجاع` `إيقاف` `استمر` |
-| **المتغيرات** | `متغير` `ثابت` |
-| **المنطق** | `و` `أو` `ليس` `صحيح` `خطأ` `فارغ` |
-| **الكائن الحالي** | `هذا.س` `هذا.ص` `هذا.قفز()` `هذا.دفع()` |
-
-### واجهات برمجة remiscript
-
-```remiscript
-// ─── المدخلات ───
-مدخل.زر("يمين")      // هل الزر مضغوط؟
-مدخل.إيماءة()        // اتجاه السحب: "يمين"/"يسار"/"أعلى"/"أسفل"
-مدخل.جويستيك_س()     // قيمة الجويستيك (-1 إلى 1)
-
-// ─── الصوت ───
-صوت.شغّل("اسم_الصوت")
-صوت.موسيقى("ملف.mp3")
-صوت.إيقاف()
-
-// ─── المشهد ───
-مشهد.ابحث("اسم_الكائن")
-مشهد.تبديل("اسم_المشهد")
-مشهد.إضافة(كائن)
-
-// ─── الرياضيات ───
-رياضيات.جذر(9)        // 3
-رياضيات.مطلق(-5)      // 5
-رياضيات.أقصى(10, 20)  // 20
-رياضيات.عشوائي(1, 6)  // عدد عشوائي
-
-// ─── هذا (الكائن الحالي) ───
-هذا.س              // الموضع الأفقي
-هذا.ص              // الموضع الرأسي
-هذا.علىالأرض       // هل على الأرض؟
-هذا.قفز(500)        // القفز بقوة 500
-هذا.دفع(300, 0)     // دفع أفقي
-هذا.تعيين_لون("#ff0000")
-هذا.تعيين_نص("نقاط: 10")
-هذا.إخفاء()
-هذا.إظهار()
-هذا.تعطيل()
-```
-
----
-
-## 🏗️ هيكل المشروع
-
-```
-REMI8/
-├── app/src/main/java/com/remi8/
-│   ├── engine/
-│   │   ├── core/           # GameEngine, GameObject, GameActivity
-│   │   ├── renderer/       # Renderer2D, SpriteComponent, ParticleSystem, Camera2D
-│   │   ├── physics/        # PhysicsEngine, PhysicsBody
-│   │   ├── audio/          # AudioManager
-│   │   ├── input/          # InputManager
-│   │   └── scene/          # SceneManager, Scene, TileMap
-│   ├── remiscript/
-│   │   ├── parser/         # RemiScriptLexer (المحلل اللغوي)
-│   │   └── interpreter/    # RemiScriptParser, RemiScriptInterpreter, ASTNode
-│   ├── editor/             # EditorActivity, EditorView, ScriptEditorActivity
-│   └── export/             # ExportActivity
-├── .github/workflows/
-│   └── build.yml           # GitHub Actions - بناء APK تلقائي
-└── assets/scripts/
-    └── مثال_لعبة.remi8s    # مثال سكربت عربي
-```
-
----
-
-## 🔧 GitHub Actions
-
-يتضمن المشروع ملف `.github/workflows/build.yml` يقوم بـ:
-
-1. ✅ **فحص الكود** (Lint) عند كل push
-2. 🔨 **بناء APK Debug** تلقائياً
-3. 📦 **بناء APK Release** عند الدفع لـ main
-4. 🏷️ **إنشاء Release** تلقائي عند إنشاء Tag
-
-### إعداد التوقيع (اختياري)
-أضف في `Settings > Secrets`:
-```
-KEYSTORE_BASE64   - Keystore مشفّر بـ Base64
-KEYSTORE_PASSWORD - كلمة مرور Keystore
-KEY_ALIAS         - اسم المفتاح
-KEY_PASSWORD      - كلمة مرور المفتاح
-```
-
----
-
-## 📱 الأجهزة المدعومة
-
-| الإصدار | API | الدعم |
-|---------|-----|-------|
-| Android 8.0 Oreo | 26 | ✅ |
-| Android 9.0 Pie | 28 | ✅ |
-| Android 10 | 29 | ✅ |
-| Android 11 | 30 | ✅ |
-| Android 12 | 31 | ✅ |
-| Android 13 | 33 | ✅ |
-| Android 14 | 34 | ✅ |
-
----
-
-## 📄 الرخصة
-
-MIT License - حرية الاستخدام والتعديل والتوزيع
-
----
-
-<div align="center">
-
-**REMI8 Engine** | صُنع بـ ❤️ للمطورين العرب
-
-</div>
+| الإجراء | التأثير |
+|---------|---------|
+| **سحب العقدة** | تحريك في Canvas |
+| **Pinch** | تكبير/تصغير |
+| **سحب Output Pin** | بدء ربط wire |
+| **إفلات على Input Pin** | إكمال الربط |
+| **نقر مزدوج على Float** | تعديل القيمة |
+| **▶ RUN** | تنفيذ Graph من C++ |
+| **📤** | تصدير كـ remiscript |
+| **＋** | فتح لوحة الـ Palette |
+| **📋** | تحميل مثال الصورة |
