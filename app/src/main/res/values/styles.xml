@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- أنماط تطبيق REMI8 -->
+<resources>
+    <!-- النمط الأساسي -->
+    <style name="Theme.REMI8" parent="Theme.AppCompat.NoActionBar">
+        <item name="colorPrimary">#e63946</item>
+        <item name="colorPrimaryDark">#c1121f</item>
+        <item name="colorAccent">#e63946</item>
+        <item name="android:windowBackground">#1a1a2e</item>
+        <item name="android:textColorPrimary">#ffffff</item>
+        <item name="android:textColorSecondary">#aaaacc</item>
+    </style>
+
+    <!-- نمط ملء الشاشة للعبة -->
+    <style name="Theme.REMI8.Fullscreen" parent="Theme.REMI8">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowBackground">#000000</item>
+    </style>
+
+    <!-- نمط زر المحرر -->
+    <style name="EditorButton">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">40dp</item>
+        <item name="android:paddingLeft">12dp</item>
+        <item name="android:paddingRight">12dp</item>
+        <item name="android:textColor">#ffffff</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:background">@drawable/btn_editor</item>
+    </style>
+
+    <!-- نمط زر التشغيل -->
+    <style name="EditorButton.Play">
+        <item name="android:background">@drawable/btn_play</item>
+        <item name="android:textColor">#ffffff</item>
+    </style>
+
+    <!-- نمط حقل الخصائص -->
+    <style name="PropertyField">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:padding">6dp</item>
+        <item name="android:textColor">#abb2bf</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:background">#2a2a4a</item>
+    </style>
+
+    <!-- نمط لوحة الخصائص -->
+    <style name="PropertiesPanel">
+        <item name="android:background">#16213e</item>
+        <item name="android:padding">8dp</item>
+    </style>
+
+    <!-- نمط محرر الكود -->
+    <style name="CodeEditor">
+        <item name="android:background">#282c34</item>
+        <item name="android:textColor">#abb2bf</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:fontFamily">monospace</item>
+        <item name="android:padding">12dp</item>
+        <item name="android:gravity">top|start</item>
+    </style>
+</resources>
