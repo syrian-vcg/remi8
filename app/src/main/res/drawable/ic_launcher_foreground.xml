@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- المقدمة - رمز REMI8: مثلث تشغيل مدمج مع حلقة ∞ / 8 (متمركز ضمن المنطقة الآمنة) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- الحلقة العلوية لرقم 8 -->
+    <path android:pathData="M40.4,29.6 Q25.5,29.6 25.5,44.5 Q25.5,57 40.4,57 Q53,57 53,44.5 Q53,33.3 40.4,33.3 Q31.9,33.3 31.9,44.5 Q31.9,50.6 40.4,50.6 Q46,50.6 46,44.5 Q46,40 40.4,40">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="24.08"
+                android:startY="28.48"
+                android:endX="85.68"
+                android:endY="81.28"
+                android:startColor="#FFB14D"
+                android:endColor="#FF5A5F" />
+        </aapt:attr>
+    </path>
+
+    <!-- مثلث التشغيل (Play) -->
+    <path android:pathData="M48.72,48.72 L48.72,85.68 L82.16,67.2 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="48.72"
+                android:startY="48.72"
+                android:endX="82.16"
+                android:endY="85.68"
+                android:startColor="#FF7A59"
+                android:endColor="#E0395B" />
+        </aapt:attr>
+    </path>
+
+    <!-- خط ربط لإعطاء شكل "8" متصل -->
+    <path android:fillColor="#FF6E59" android:pathData="M42.5,50.5 L50.5,50.5 L50.5,59.3 L42.5,59.3 Q41,59.3 41,57.8 L41,52 Q41,50.5 42.5,50.5 Z"/>
+
+    <!-- لمعة صغيرة -->
+    <path android:fillColor="#46FFFFFF" android:pathData="M32.9,38.2 a2.6,2.6 0 1,0 5.3,0 a2.6,2.6 0 1,0 -5.3,0"/>
+</vector>
