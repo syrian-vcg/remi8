@@ -1,29 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- أيقونة REMI8 دائرية -->
+<!-- أيقونة REMI8 - النسخة المسطحة (للأجهزة الأقدم من Android 8) -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- دائرة حمراء -->
-    <path android:fillColor="#e63946"
-        android:pathData="M54,54 m-54,0 a54,54 0 1,0 108,0 a54,54 0 1,0 -108,0"/>
+    <!-- خلفية متدرجة كحلية داكنة -->
+    <path android:pathData="M0,0 L108,0 L108,108 L0,108 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="0"
+                android:startY="0"
+                android:endX="108"
+                android:endY="108"
+                android:startColor="#1B1F3B"
+                android:centerColor="#14172E"
+                android:endColor="#0D0F22" />
+        </aapt:attr>
+    </path>
 
-    <!-- شريط أبيض -->
-    <path android:fillColor="#ffffff"
-        android:pathData="M4,35 Q54,-10 104,35 L104,72 Q54,117 4,72 Z"/>
+    <!-- توهج ناعم -->
+    <path android:fillColor="#1AFF6B57" android:pathData="M54,54 m-40,0 a40,40 0 1,0 80,0 a40,40 0 1,0 -80,0"/>
 
-    <!-- نص REMI -->
-    <path android:fillColor="#1a1a1a"
-        android:pathData="M22,42 L22,66 L27,66 L27,56 L32,56 L38,66 L44,66 L37,55 Q42,52 42,47 Q42,42 33,42 Z
-                          M27,47 L33,47 Q37,47 37,50 Q37,53 33,53 L27,53 Z"/>
+    <!-- الحلقة العلوية -->
+    <path android:pathData="M40.4,29.6 Q25.5,29.6 25.5,44.5 Q25.5,57 40.4,57 Q53,57 53,44.5 Q53,33.3 40.4,33.3 Q31.9,33.3 31.9,44.5 Q31.9,50.6 40.4,50.6 Q46,50.6 46,44.5 Q46,40 40.4,40">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="24.08"
+                android:startY="28.48"
+                android:endX="85.68"
+                android:endY="81.28"
+                android:startColor="#FFB14D"
+                android:endColor="#FF5A5F" />
+        </aapt:attr>
+    </path>
 
-    <!-- الرقم 8 -->
-    <path android:fillColor="#e63946"
-        android:pathData="M78,40 Q70,40 70,48 Q70,53 75,55 Q69,57 69,63 Q69,71 78,71
-                          Q87,71 87,63 Q87,57 81,55 Q86,53 86,48 Q86,40 78,40 Z
-                          M78,45 Q82,45 82,48 Q82,51 78,51 Q74,51 74,48 Q74,45 78,45 Z
-                          M78,56 Q82,56 82,62 Q82,67 78,67 Q74,67 74,62 Q74,56 78,56 Z"/>
+    <!-- مثلث التشغيل -->
+    <path android:pathData="M48.72,48.72 L48.72,85.68 L82.16,67.2 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="48.72"
+                android:startY="48.72"
+                android:endX="82.16"
+                android:endY="85.68"
+                android:startColor="#FF7A59"
+                android:endColor="#E0395B" />
+        </aapt:attr>
+    </path>
 
+    <!-- خط الربط -->
+    <path android:fillColor="#FF6E59" android:pathData="M42.5,50.5 L50.5,50.5 L50.5,59.3 L42.5,59.3 Q41,59.3 41,57.8 L41,52 Q41,50.5 42.5,50.5 Z"/>
+
+    <!-- لمعة -->
+    <path android:fillColor="#46FFFFFF" android:pathData="M32.9,38.2 a2.6,2.6 0 1,0 5.3,0 a2.6,2.6 0 1,0 -5.3,0"/>
 </vector>
